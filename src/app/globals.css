@@ -19,3 +19,6 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+h3.font-bold.mb-2.capitalize.flex.items-center svg {
+  color: #ff7000;
+}
