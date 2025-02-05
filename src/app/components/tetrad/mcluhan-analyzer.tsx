@@ -1,118 +1,134 @@
-'use client';
-
+"use client";
 import React, { useState } from 'react';
-import { SoftUICard, SoftUICardHeader, SoftUICardTitle, SoftUICardContent } from '../ui/card';
-import SoftUIButton from '../ui/button';
-import SoftUISlider from '../ui/slider';
-import SoftUIInput from '../ui/input';
 import { Alert, AlertDescription } from '../ui/alert';
+import { SoftUICard, SoftUICardHeader, SoftUICardTitle, SoftUICardContent } from '../ui/card';
+import { Slider } from '../ui/slider';
+import { Input } from '../ui/input';
+import { Switch } from '../ui/switch';
+import { Button } from '../ui/button';
 import { Loader2 } from 'lucide-react';
-import { generateAnalysis } from '../../lib/claude';
-import { FaArrowUp, FaArrowDown, FaUndo, FaExchangeAlt } from 'react-icons/fa';
+import { performClaudeAnalysis, performOllamaAnalysis } from './analysis-api';
+import { AnalysisParams } from './types/types';
+import styled from 'styled-components';
+import { ExplorationResults } from './ExplorationResults';
+
+import { ExplorationResponse } from './types/types';
+import { 
+  Maximize2,    // For Enhancement
+  MinusCircle,  // For Obsolescence
+  RotateCcw,    // For Retrieval
+  FlipHorizontal // For Reversal
+} from 'lucide-react';
 
 const McLuhanAnalyzer = () => {
   const [technology, setTechnology] = useState('');
-  const [result, setResult] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [temperature, setTemperature] = useState(0.7);
+  const [selectedLLM, setSelectedLLM] = useState<'claude' | 'ollama'>('claude');
+  const [isLoading, setIsLoading] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [explorationResults, setExplorationResults] = useState<ExplorationResponse | null>(null);
+  const [isLoadingExploration, setIsLoadingExploration] = useState(false);
 
   // Analysis parameters
   const [parameters, setParameters] = useState({
     timeScope: 50,  // 0: Immediate effects, 100: Long-term effects
     scale: 50,      // 0: Individual impact, 100: Societal impact
     depth: 50,      // 0: Surface-level analysis, 100: Deep philosophical analysis
-    timeline: 2024  // Year for the analysis
+    timeline: 2025  // Year for the analysis
   });
 
-  const handleAnalysis = async () => {
-    if (!technology.trim()) {
-      setError('Please enter a technology to analyze');
-      return;
-    }
+  const getTimeScopeLabel = () => {
+    if (parameters.timeScope < 33) return "Focus on immediate and short-term effects";
+    if (parameters.timeScope < 66) return "Balance short and long-term implications";
+    return "Emphasize long-term and future implications";
+  };
 
-    setLoading(true);
-    setError(null);
+  const getScaleLabel = () => {
+    if (parameters.scale < 33) return "Focus on individual impacts";
+    if (parameters.scale < 66) return "Consider both individual and societal impacts";
+    return "Emphasize broader societal and cultural impacts";
+  };
 
+  const getDepthLabel = () => {
+    if (parameters.depth < 33) return "Provide practical, concrete analysis";
+    if (parameters.depth < 66) return "Balance practical and philosophical implications";
+    return "Delve into deeper philosophical implications";
+  };
+
+  const handleExploreDeeper = async () => {
+    if (!analysisResults) return;
+    
+    setIsLoadingExploration(true);
     try {
-      const prompt = `You are tasked with thinking like the media theorist Marshall McLuhan and creating outputs for his tetrad of media effects based on a given media technology. McLuhan's tetrad is a tool for analyzing the effects of any technology or medium on society.
-
-First, I will provide you with a brief explanation of the four aspects of McLuhan's tetrad:
-
-1. Enhancement: What does the medium amplify or intensify?
-2. Obsolescence: What does the medium drive out of prominence?
-3. Retrieval: What does the medium recover which was previously lost?
-4. Reversal: What does the medium flip into when pushed to extremes?
-
-Analysis Parameters:
-${parameters.timeScope < 33 ? '- Focus on immediate and short-term effects' 
-  : parameters.timeScope < 66 ? '- Balance short and long-term implications'
-  : '- Emphasize long-term and future implications'}
-${parameters.scale < 33 ? '- Focus on individual impacts'
-  : parameters.scale < 66 ? '- Consider both individual and societal impacts'
-  : '- Emphasize broader societal and cultural impacts'}
-${parameters.depth < 33 ? '- Provide practical, concrete analysis'
-  : parameters.depth < 66 ? '- Balance practical and philosophical implications'
-  : '- Delve into deeper philosophical implications'}
-- Consider advancements in technology or medium for the year ${parameters.timeline}
-
-Your task is to analyze the following media technology using McLuhan's tetrad:
-
-<media_technology>
-${technology}
-</media_technology>
-
-To complete this task, follow these steps:
-
-1. Carefully consider the given media technology and its potential impacts on society, culture, and human behavior.
-
-2. For each aspect of the tetrad, provide a thoughtful analysis in McLuhan's style. Be creative, critical, and consider both obvious and non-obvious effects.
-
-3. Structure your response using the following format:
-
-<tetrad_analysis>
-<enhancement>
-[Your analysis of what the medium enhances or intensifies]
-</enhancement>
-
-<obsolescence>
-[Your analysis of what the medium makes obsolete or pushes out of prominence]
-</obsolescence>
-
-<retrieval>
-[Your analysis of what the medium brings back or retrieves from the past]
-</retrieval>
-
-<reversal>
-[Your analysis of how the medium flips into when pushed to its limits]
-</reversal>
-</tetrad_analysis>
-`;
-
-      const response = await generateAnalysis(prompt);
+      console.log('Exploration payload:', {
+        technology,
+        tetradResults: analysisResults.content,
+        model: selectedLLM
+      });
       
-      if (response.error) {
-        setError(response.error);
-        return;
+      const response = await fetch('/api/exploration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          technology,
+          tetradResults: analysisResults.content,
+          model: selectedLLM
+        }),
+      });
+  
+      console.log('Response status:', response.status);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API error details:', errorData);
+        throw new Error(`Failed to generate exploration: ${errorData.error || 'Unknown error'}`);
       }
       
-      setResult(response.content);
-    } catch (err) {
-      setError('Failed to generate analysis. Please try again.');
-      console.error('Analysis error:', err);
+      const data = await response.json();
+      console.log('Exploration results:', data);
+      setExplorationResults(data);
+    } catch (error) {
+      console.error('Exploration failed:', error);
+      setError('Failed to generate exploration content');
     } finally {
-      setLoading(false);
+      setIsLoadingExploration(false);
     }
   };
 
-  const formatTetradAnalysis = (result: string) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(result, 'text/xml');
-    return {
-      enhancement: doc.querySelector('enhancement')?.textContent || '',
-      obsolescence: doc.querySelector('obsolescence')?.textContent || '',
-      retrieval: doc.querySelector('retrieval')?.textContent || '',
-      reversal: doc.querySelector('reversal')?.textContent || ''
-    };
+  const handleGenerateAnalysis = async () => {
+    if (!technology) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const analysisParams: AnalysisParams = {
+        technology,
+        temperature,
+        model: selectedLLM,
+        parameters: {
+          timeScope: parameters.timeScope,
+          scale: parameters.scale,
+          depth: parameters.depth,
+          timeline: parameters.timeline
+        }
+      };
+
+      console.log('Sending analysis params:', analysisParams);
+      
+      const results = selectedLLM === 'claude' 
+        ? await performClaudeAnalysis(analysisParams)
+        : await performOllamaAnalysis(analysisParams);
+        
+      setAnalysisResults(results);
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      setError('Analysis failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -121,9 +137,9 @@ To complete this task, follow these steps:
       <SoftUICard>
         <SoftUICardHeader>
           <SoftUICardTitle>McLuhan&apos;s Tetrad of Media Effects</SoftUICardTitle>
-          <SoftUICardContent>
+          <div className="text-muted-foreground">
             Analyze any technology or medium using McLuhan&apos;s four laws of media
-          </SoftUICardContent>
+          </div>
         </SoftUICardHeader>
         <SoftUICardContent>
           <div className="prose dark:prose-invert">
@@ -141,144 +157,380 @@ To complete this task, follow these steps:
         </SoftUICardContent>
       </SoftUICard>
 
-      {/* Analysis Tool */}
+      {/* Analysis Parameters */}
       <SoftUICard>
         <SoftUICardHeader>
           <SoftUICardTitle>Analysis Parameters</SoftUICardTitle>
-          <SoftUICardContent>
-            Configure how the analysis should be performed
-          </SoftUICardContent>
         </SoftUICardHeader>
         <SoftUICardContent>
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Technology or Medium to Analyze
-            </label>
-            <SoftUIInput
-              value={technology}
-              onChange={(e) => setTechnology(e.target.value)}
-              placeholder="e.g., Smartphone, Social Media, Virtual Reality"
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Time Scope: Immediate to Long-term Effects
+          <div className="space-y-6">
+            {/* Technology Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Technology or Medium to Analyze
               </label>
-              <SoftUISlider
-                value={parameters.timeScope}
-                onChange={(e) => setParameters(p => ({...p, timeScope: Number(e.target.value)}))}
-                max={100}
-                step={1}
+              <Input
+                value={technology}
+                onChange={(e) => setTechnology(e.target.value)}
+                placeholder="e.g., Smartphone, Social Media, Virtual Reality"
               />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Immediate</span>
-                <span>Long-term</span>
+            </div>
+
+            {/* Time Scope Slider - Already exists */}
+<div className="space-y-2">
+  <label className="text-sm font-medium">Time Scope</label>
+  <Slider
+    value={[parameters.timeScope]}
+    onValueChange={(value) => setParameters(p => ({...p, timeScope: value[0]}))}
+    max={100}
+    step={1}
+  />
+  <div className="flex justify-between text-xs text-muted-foreground">
+    <span>Immediate</span>
+    <p className="text-sm text-muted-foreground">{getTimeScopeLabel()}</p>
+    <span>Long-term</span>
+  </div>
+</div>
+
+{/* Scale Slider */}
+<div className="space-y-2">
+  <label className="text-sm font-medium">Impact Scale</label>
+  <Slider
+    value={[parameters.scale]}
+    onValueChange={(value) => setParameters(p => ({...p, scale: value[0]}))}
+    max={100}
+    step={1}
+  />
+  <div className="flex justify-between text-xs text-muted-foreground">
+    <span>Individual</span>
+    <p className="text-sm text-muted-foreground">{getScaleLabel()}</p>
+    <span>Societal</span>
+  </div>
+</div>
+
+{/* Depth Slider */}
+<div className="space-y-2">
+  <label className="text-sm font-medium">Analysis Depth</label>
+  <Slider
+    value={[parameters.depth]}
+    onValueChange={(value) => setParameters(p => ({...p, depth: value[0]}))}
+    max={100}
+    step={1}
+  />
+  <div className="flex justify-between text-xs text-muted-foreground">
+    <span>Practical</span>
+    <p className="text-sm text-muted-foreground">{getDepthLabel()}</p>
+    <span>Philosophical</span>
+  </div>
+</div>
+
+{/* Timeline Slider - Already exists */}
+            {/* Timeline Slider */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Analysis Timeline</label>
+              <div className="sc-hWWBcw frWHZL">
+                <Slider
+                  value={[parameters.timeline]}
+                  onValueChange={(value) => setParameters(p => ({...p, timeline: value[0]}))}
+                  min={2025}
+                  max={2055}
+                  step={1}
+                />
+                <span className="text-sm text-muted-foreground w-16">
+                  {parameters.timeline}
+                </span>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Scale: Individual to Societal Impact
-              </label>
-              <SoftUISlider
-                value={parameters.scale}
-                onChange={(e) => setParameters(p => ({...p, scale: Number(e.target.value)}))}
-                max={100}
-                step={1}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Individual</span>
-                <span>Societal</span>
+            {/* Temperature Slider */}
+<div className="space-y-2">
+  <label className="text-sm font-medium">LLM Temperature</label>
+  <Slider
+    value={[temperature * 100]}
+    onValueChange={(value) => setTemperature(value[0] / 100)}
+    max={100}
+    step={1}
+  />
+  <div className="flex justify-between text-xs text-muted-foreground">
+    <span>More Focused ({(temperature * 100).toFixed(0)}%)</span>
+    <p className="text-sm text-muted-foreground">
+      {temperature < 0.33 ? "Consistent, deterministic outputs"
+        : temperature < 0.66 ? "Balanced creativity and consistency"
+        : "More creative, diverse outputs"}
+    </p>
+    <span>More Creative</span>
+  </div>
+</div>
+
+            {/* Controls */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={selectedLLM === 'ollama'}
+                  onCheckedChange={(checked) => 
+                    setSelectedLLM(checked ? 'ollama' : 'claude')
+                  }
+                />
+                <label className="text-sm">Use Local Deepseek</label>
               </div>
+
+              <Button 
+                disabled={!technology || isLoading}
+                onClick={handleGenerateAnalysis}
+                className="w-full" style={{ color: 'rgb(237 113 26)' }}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin" />
+                    <span>Generating...</span>
+                  </div>
+                ) : (
+                  `Generate ${selectedLLM === 'claude' ? 'Claude' : 'Deepseek'} Analysis`
+                )}
+              </Button>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Analysis Depth: Practical to Philosophical
-              </label>
-              <SoftUISlider
-                value={parameters.depth}
-                onChange={(e) => setParameters(p => ({...p, depth: Number(e.target.value)}))}
-                max={100}
-                step={1}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Practical</span>
-                <span>Philosophical</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Timeline: Year of Analysis for <span style={{ color: '#007bff' }}>{parameters.timeline}</span>
-              </label>
-              <SoftUISlider
-                value={parameters.timeline}
-                onChange={(e) => setParameters(p => ({...p, timeline: Number(e.target.value)}))}
-                min={2024}
-                max={2100}
-                step={1}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>2024</span>
-                <span>2100</span>
-              </div>
-            </div>
-          </div>
-
-          <SoftUIButton 
-            onClick={handleAnalysis} 
-            disabled={loading || !technology.trim()}
-            className="w-full"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating Analysis...
-              </>
-            ) : (
-              'Generate Tetrad Analysis'
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
-          </SoftUIButton>
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          </div>
         </SoftUICardContent>
       </SoftUICard>
 
-      {/* Results Section */}
-      {result && (
+      {/* Analysis Results */}
+      {analysisResults && (
         <SoftUICard>
           <SoftUICardHeader>
-            <SoftUICardTitle>McLuhan&apos;s Tetrad Analysis</SoftUICardTitle>
-            <SoftUICardContent>
-              Analysis of {technology}&apos;s effects on society and culture for the year <span style={{ color: '#007bff' }}>{parameters.timeline}</span>
-            </SoftUICardContent>
+            <SoftUICardTitle>McLuhan Tetrad Analysis</SoftUICardTitle>
           </SoftUICardHeader>
           <SoftUICardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              {Object.entries(formatTetradAnalysis(result)).map(([key, value]) => (
-                <SoftUICard key={key} className="p-4 bg-muted/50">
-                  <h3 className="font-bold mb-2 capitalize flex items-center">
-                    {key === 'enhancement' && <FaArrowUp className="mr-2" />}
-                    {key === 'obsolescence' && <FaArrowDown className="mr-2" />}
-                    {key === 'retrieval' && <FaUndo className="mr-2" />}
-                    {key === 'reversal' && <FaExchangeAlt className="mr-2" />}
-                    {key}
-                  </h3>
-                  <p className="text-sm leading-relaxed">{value}</p>
-                </SoftUICard>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Enhancement */}
+<SoftUICard>
+  <SoftUICardHeader>
+    <div className="flex items-center space-x-2">
+      <Maximize2 className="h-5 w-5" style={{ color: '#708de6' }} />
+      <SoftUICardTitle>Enhancement</SoftUICardTitle>
+    </div>
+  </SoftUICardHeader>
+  <SoftUICardContent>
+    <ul className="list-disc pl-5 space-y-2">
+      {analysisResults.content.enhancement.map((item: string, index: number) => (
+        <li key={index} className="text-muted-foreground">{item}</li>
+      ))}
+    </ul>
+  </SoftUICardContent>
+</SoftUICard>
+
+{/* Obsolescence */}
+<SoftUICard>
+  <SoftUICardHeader>
+    <div className="flex items-center space-x-2">
+      <MinusCircle className="h-5 w-5" style={{ color: '#708de6' }} />
+      <SoftUICardTitle>Obsolescence</SoftUICardTitle>
+    </div>
+  </SoftUICardHeader>
+  <SoftUICardContent>
+    <ul className="list-disc pl-5 space-y-2">
+      {analysisResults.content.obsolescence.map((item: string, index: number) => (
+        <li key={index} className="text-muted-foreground">{item}</li>
+      ))}
+    </ul>
+  </SoftUICardContent>
+</SoftUICard>
+
+{/* Retrieval */}
+<SoftUICard>
+  <SoftUICardHeader>
+    <div className="flex items-center space-x-2">
+      <RotateCcw className="h-5 w-5" style={{ color: '#708de6' }} />
+      <SoftUICardTitle>Retrieval</SoftUICardTitle>
+    </div>
+  </SoftUICardHeader>
+  <SoftUICardContent>
+    <ul className="list-disc pl-5 space-y-2">
+      {analysisResults.content.retrieval.map((item: string, index: number) => (
+        <li key={index} className="text-muted-foreground">{item}</li>
+      ))}
+    </ul>
+  </SoftUICardContent>
+</SoftUICard>
+
+{/* Reversal */}
+<SoftUICard>
+  <SoftUICardHeader>
+    <div className="flex items-center space-x-2">
+      <FlipHorizontal className="h-5 w-5" style={{ color: '#708de6' }} />
+      <SoftUICardTitle>Reversal</SoftUICardTitle>
+    </div>
+  </SoftUICardHeader>
+  <SoftUICardContent>
+    <ul className="list-disc pl-5 space-y-2">
+      {analysisResults.content.reversal.map((item: string, index: number) => (
+        <li key={index} className="text-muted-foreground">{item}</li>
+      ))}
+    </ul>
+  </SoftUICardContent>
+</SoftUICard>
+            </div>
+
+            {/* Analysis Summary */}
+            <div className="mt-6">
+              <SoftUICard>
+                <SoftUICardHeader>
+                  <SoftUICardTitle>Analysis Summary</SoftUICardTitle>
+                </SoftUICardHeader>
+                <SoftUICardContent>
+                  <div className="space-y-4">
+                    <p className="text-muted-foreground">
+                      {analysisResults.content.analysis}
+                    </p>
+                    <div className="flex items-center mt-4 text-sm">
+                      <span className="font-medium">Confidence Score:</span>
+                      <span className="ml-2 text-muted-foreground">
+                        {(analysisResults.content.confidence * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </SoftUICardContent>
+              </SoftUICard>
+            </div>
+            <div className="mt-6">
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleExploreDeeper}
+                  disabled={isLoadingExploration}
+                  className="w-full md:w-auto" style={{ color: 'rgb(237 113 26)' }}
+                >
+                  {isLoadingExploration ? (
+                    <div className="flex items-center gap-2" >
+                      <Loader2 className="animate-spin" />
+                      <span>Generating Exploration...</span>
+                    </div>
+                  ) : (
+                    'Dig Deeper'
+                  )}
+                </Button>
+              </div>
+            </div>
+            </SoftUICardContent>
+  </SoftUICard>
+)}
+            {explorationResults && (
+  <SoftUICard>
+    <SoftUICardHeader>
+      <SoftUICardTitle>Deep Dive Exploration</SoftUICardTitle>
+    </SoftUICardHeader>
+    <SoftUICardContent>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Enhancement */}
+        <SoftUICard>
+          <SoftUICardHeader>
+          <div className="flex items-center space-x-2">
+      <Maximize2 className="h-5 w-5" style={{ color: '#708de6' }} />
+      <SoftUICardTitle>Enhancement</SoftUICardTitle>
+    </div>
+          </SoftUICardHeader>
+          <SoftUICardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-2">Example:</h3>
+                <p className="text-muted-foreground">{explorationResults.content.enhancement.example}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                <ul className="list-disc pl-5 space-y-2">
+                  {explorationResults.content.enhancement.questions.map((question, index) => (
+                    <li key={index} className="text-muted-foreground">{question}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </SoftUICardContent>
         </SoftUICard>
-      )}
+
+        {/* Obsolescence */}
+        <SoftUICard>
+          <SoftUICardHeader>
+          <div className="flex items-center space-x-2">
+      <MinusCircle className="h-5 w-5" style={{ color: '#708de6' }} />
+      <SoftUICardTitle>Obsolescence</SoftUICardTitle>
     </div>
+          </SoftUICardHeader>
+          <SoftUICardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-2">Example:</h3>
+                <p className="text-muted-foreground">{explorationResults.content.obsolescence.example}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                <ul className="list-disc pl-5 space-y-2">
+                  {explorationResults.content.obsolescence.questions.map((question, index) => (
+                    <li key={index} className="text-muted-foreground">{question}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </SoftUICardContent>
+        </SoftUICard>
+
+        {/* Retrieval */}
+        <SoftUICard>
+          <SoftUICardHeader>
+          <div className="flex items-center space-x-2">
+      <RotateCcw className="h-5 w-5" style={{ color: '#708de6' }} />
+      <SoftUICardTitle>Retrieval</SoftUICardTitle>
+    </div>
+          </SoftUICardHeader>
+          <SoftUICardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-2">Example:</h3>
+                <p className="text-muted-foreground">{explorationResults.content.retrieval.example}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                <ul className="list-disc pl-5 space-y-2">
+                  {explorationResults.content.retrieval.questions.map((question, index) => (
+                    <li key={index} className="text-muted-foreground">{question}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </SoftUICardContent>
+        </SoftUICard>
+        <SoftUICard>
+          <SoftUICardHeader>
+          <div className="flex items-center space-x-2">
+      <FlipHorizontal className="h-5 w-5" style={{ color: '#708de6' }} />
+      <SoftUICardTitle>Reversal</SoftUICardTitle>
+    </div>
+          </SoftUICardHeader>
+          <SoftUICardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-2">Example:</h3>
+                <p className="text-muted-foreground">{explorationResults.content.reversal.example}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                <ul className="list-disc pl-5 space-y-2">
+                  {explorationResults.content.reversal.questions.map((question, index) => (
+                    <li key={index} className="text-muted-foreground">{question}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </SoftUICardContent>
+        </SoftUICard>
+      </div>
+    </SoftUICardContent>
+  </SoftUICard>
+)}
+</div>
   );
 };
 
