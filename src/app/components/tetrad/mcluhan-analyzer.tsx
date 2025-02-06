@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import FlipCard from './FlipCard';
 import { generateCounterpartContent } from './counterpartContent';
+import McLuhanReport from './McLuhanReport';
 import './flip-card.css';
 const McLuhanAnalyzer = () => {
   const [technology, setTechnology] = useState('');
@@ -31,6 +32,7 @@ const McLuhanAnalyzer = () => {
   const [error, setError] = useState<string | null>(null);
   const [explorationResults, setExplorationResults] = useState<ExplorationResponse | null>(null);
   const [isLoadingExploration, setIsLoadingExploration] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   // Analysis parameters
   const [parameters, setParameters] = useState({
@@ -649,9 +651,32 @@ const McLuhanAnalyzer = () => {
                 </SoftUICardContent>
               </SoftUICard>
             </div>
+            <div className="mt-6">
+    <div className="flex justify-center">
+      <Button
+        onClick={() => setShowReport(!showReport)}
+        className="w-full md:w-auto"
+        style={{ color: 'rgb(237 113 26)' }}
+      >
+        {showReport ? 'Hide Report' : 'Generate Complete Report'}
+      </Button>
+    </div>
+  </div>
           </SoftUICardContent>
         </SoftUICard>
       )}
+
+
+
+{/* Report Section */}
+{showReport && explorationResults && (
+  <McLuhanReport
+    technology={technology}
+    analysisResults={analysisResults}
+    explorationResults={explorationResults}
+    timeline={parameters.timeline}
+  />
+)}
     </div>
   );
 };
