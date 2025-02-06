@@ -70,7 +70,7 @@ const QuestionWithDeepDive: React.FC<QuestionWithDeepDiveProps> = ({
           onClick={handleDeepDive}
           disabled={isLoading}
           className="text-[#708de6] pl-4 hover:text-[#4a6ee5] transition-colors duration-200 flex items-center gap-1"
-          style={{color: 'rgb(237, 113, 26)' }}
+          style={{color: 'rgb(237, 113, 26)', justifyContent: 'left' }}
         >
           {isLoading ? (
             <div className="flex items-center gap-2">
