@@ -27,3 +27,19 @@ background-position: 0 0, 0 0, 4px 7px, 4px 7px, 0 0, 4px 7px;
 h3.font-bold.mb-2.capitalize.flex.items-center svg {
   color: #ff7000;
 }
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}

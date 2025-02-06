@@ -45,3 +45,15 @@ export interface ExplorationResponse {
   content: ExplorationContent;
   error?: string;
 }
+
+interface CounterpartContent {
+  limitations: string[];
+  implications: string;
+}
+
+interface TetradCounterparts {
+  enhancement: CounterpartContent;
+  obsolescence: CounterpartContent;
+  retrieval: CounterpartContent;
+  reversal: CounterpartContent;
+}

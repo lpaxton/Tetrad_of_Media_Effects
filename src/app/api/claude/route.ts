@@ -11,6 +11,31 @@ function generatePrompt(params: AnalysisParams) {
     ? '- Balance established impacts with potential emerging effects'
     : '- Explore creative and speculative future implications';
 
+  // Build analysis parameters
+  const timeScope = (parameters?.timeScope ?? 0) < 33 
+    ? '- Focus on immediate and short-term effects'
+    : (parameters?.timeScope ?? 0) < 66 
+    ? '- Balance short and long-term implications'
+    : '- Emphasize long-term and future implications';
+
+  const scale = (parameters?.scale ?? 0) < 33
+    ? '- Focus on individual impacts'
+    : (parameters?.scale ?? 0) < 66
+    ? '- Consider both individual and societal impacts'
+    : '- Emphasize broader societal and cultural impacts';
+
+  const depth = (parameters?.depth ?? 0) < 33
+    ? '- Provide practical, concrete analysis'
+    : (parameters?.depth ?? 0) < 66
+    ? '- Balance practical and philosophical implications'
+    : '- Delve into deeper philosophical implications';
+
+  const temperatureInstruction = temperature < 0.33 
+    ? 'Focus on well-documented and proven effects, maintaining a conservative analytical approach.'
+    : temperature < 0.66
+    ? 'Balance established effects with thoughtful speculation about emerging trends.'
+    : 'Feel free to explore innovative and transformative possibilities while maintaining plausibility.';
+
   return `You are tasked with analyzing ${technology} using Marshall McLuhan's tetrad of media effects. Please provide your analysis in a strict JSON format matching this exact structure:
 
 {
@@ -34,21 +59,21 @@ function generatePrompt(params: AnalysisParams) {
     "second effect",
     "third effect"
   ],
+  "considerations": {
+    "enhancement": "A thoughtful consideration about balancing enhancement capabilities",
+    "obsolescence": "A thoughtful consideration about what is being lost",
+    "retrieval": "A thoughtful consideration about what is being brought back",
+    "reversal": "A thoughtful consideration about potential negative transformations"
+  },
   "analysis": "summary paragraph here",
   "confidence": 0.85
 }
 
 Analysis Parameters to consider:
 ${temperatureGuidance}
-${parameters?.timeScope < 33 ? '- Focus on immediate and short-term effects' 
-  : parameters?.timeScope < 66 ? '- Balance short and long-term implications'
-  : '- Emphasize long-term and future implications'}
-${parameters?.scale < 33 ? '- Focus on individual impacts'
-  : parameters?.scale < 66 ? '- Consider both individual and societal impacts'
-  : '- Emphasize broader societal and cultural impacts'}
-${parameters?.depth < 33 ? '- Provide practical, concrete analysis'
-  : parameters?.depth < 66 ? '- Balance practical and philosophical implications'
-  : '- Delve into deeper philosophical implications'}
+${timeScope}
+${scale}
+${depth}
 - Consider advancements in technology or medium for the year ${parameters?.timeline || 2024}
 
 Remember:
@@ -57,11 +82,7 @@ Remember:
 3. Retrieval: What does ${technology} recover which was previously lost?
 4. Reversal: What does ${technology} flip into when pushed to extremes?
 
-${temperature < 0.33 
-  ? 'Focus on well-documented and proven effects, maintaining a conservative analytical approach.'
-  : temperature < 0.66
-  ? 'Balance established effects with thoughtful speculation about emerging trends.'
-  : 'Feel free to explore innovative and transformative possibilities while maintaining plausibility.'}
+${temperatureInstruction}
 
 Important: Your response must be valid JSON that exactly matches the structure shown above. Each effect should be a complete, insightful phrase.`;
 }
@@ -124,13 +145,14 @@ export async function POST(request: Request) {
       console.log('Parsed content:', parsedContent);
 
       return NextResponse.json({ content: parsedContent });
-    } catch (parseError) {
-      console.error('Parse error:', parseError);
+    } catch (error: unknown) {
+      console.error('Parse error:', error);
       console.error('Failed to parse text:', claudeResponse.content[0].text);
       
       // Return a more specific error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown parsing error';
       return NextResponse.json(
-        { error: `Failed to parse Claude response: ${parseError.message}` },
+        { error: `Failed to parse Claude response: ${errorMessage}` },
         { status: 500 }
       );
     }

@@ -106,7 +106,7 @@ export async function POST(request: Request) {
         console.error('Failed to parse text:', claudeResponse.content[0].text);
         
         return NextResponse.json(
-          { error: `Failed to parse Claude response: ${parseError.message}` },
+          { error: `Failed to parse Claude response: ${(parseError as Error).message}` },
           { status: 500 }
         );
       }
@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       } catch (parseError) {
         console.error('Parse error:', parseError);
         return NextResponse.json(
-          { error: `Failed to parse Ollama response: ${parseError.message}` },
+          { error: `Failed to parse Ollama response: ${(parseError as Error).message}` },
           { status: 500 }
         );
       }

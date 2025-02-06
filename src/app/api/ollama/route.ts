@@ -109,33 +109,33 @@ export async function POST(request: Request) {
       const fallbackResponse: AnalysisResponse = {
         content: {
           enhancement: [
-            `Amplified ${params.parameters.depth < 33 ? 'functional' : 'transformative'} capabilities`,
-            `Enhanced ${params.parameters.scale < 33 ? 'personal' : 'collective'} engagement`,
-            `Expanded ${params.parameters.timeScope < 33 ? 'immediate' : 'future'} possibilities`
+            `Amplified ${params?.parameters?.depth ?? 50 < 33 ? 'functional' : 'transformative'} capabilities`,
+            `Enhanced ${params?.parameters?.scale ?? 50 < 33 ? 'personal' : 'collective'} engagement`,
+            `Expanded ${params?.parameters?.timeScope ?? 50 < 33 ? 'immediate' : 'future'} possibilities`
           ],
           obsolescence: [
-            `Legacy ${params.parameters.depth < 33 ? 'tools' : 'paradigms'}`,
-            `Traditional ${params.parameters.scale < 33 ? 'methods' : 'systems'}`,
-            `Previous ${params.parameters.timeScope < 33 ? 'solutions' : 'frameworks'}`
+            `Legacy ${params?.parameters?.depth ?? 50 < 33 ? 'tools' : 'paradigms'}`,
+            `Traditional ${params?.parameters?.scale ?? 50 < 33 ? 'methods' : 'systems'}`,
+            `Previous ${params?.parameters?.timeScope ?? 50 < 33 ? 'solutions' : 'frameworks'}`
           ],
           retrieval: [
-            `Essential ${params.parameters.depth < 33 ? 'functions' : 'principles'}`,
-            `Core ${params.parameters.scale < 33 ? 'experiences' : 'values'}`,
-            `Fundamental ${params.parameters.timeScope < 33 ? 'processes' : 'patterns'}`
+            `Essential ${params?.parameters?.depth ?? 50 < 33 ? 'functions' : 'principles'}`,
+            `Core ${params?.parameters?.scale ?? 50 < 33 ? 'experiences' : 'values'}`,
+            `Fundamental ${params?.parameters?.timeScope ?? 50 < 33 ? 'processes' : 'patterns'}`
           ],
           reversal: [
-            `${params.parameters.depth < 33 ? 'Practical' : 'Philosophical'} challenges`,
-            `${params.parameters.scale < 33 ? 'Personal' : 'Societal'} implications`,
-            `${params.parameters.timeScope < 33 ? 'Immediate' : 'Long-term'} consequences`
+            `${params?.parameters?.depth ?? 50 < 33 ? 'Practical' : 'Philosophical'} challenges`,
+            `${params?.parameters?.scale ?? 50 < 33 ? 'Personal' : 'Societal'} implications`,
+            `${params?.parameters?.timeScope ?? 50 < 33 ? 'Immediate' : 'Long-term'} consequences`
           ],
-          analysis: `Deep analysis of ${params.technology} using McLuhan's framework reveals ${
-            params.parameters.depth < 33 ? 'practical' : 'philosophical'
+          analysis: `Deep analysis of ${params?.technology ?? 'technology'} using McLuhan's framework reveals ${
+            params?.parameters?.depth ?? 50 < 33 ? 'practical' : 'philosophical'
           } insights about ${
-            params.parameters.scale < 33 ? 'individual' : 'societal'
+            params?.parameters?.scale ?? 50 < 33 ? 'individual' : 'societal'
           } impacts through ${
-            params.parameters.timeline
+            params?.parameters?.timeline ?? '2024'
           }, highlighting ${
-            params.parameters.timeScope < 33 ? 'immediate' : 'long-term'
+            params?.parameters?.timeScope ?? 50 < 33 ? 'immediate' : 'long-term'
           } transformative potential.`,
           confidence: 0.78
         }
