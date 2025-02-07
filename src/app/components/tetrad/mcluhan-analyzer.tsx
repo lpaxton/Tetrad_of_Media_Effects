@@ -34,6 +34,27 @@ const McLuhanAnalyzer = () => {
   const [isLoadingExploration, setIsLoadingExploration] = useState(false);
   const [showReport, setShowReport] = useState(false);
 
+
+  const [deepDiveResponses, setDeepDiveResponses] = useState<{
+    [key: string]: { [key: number]: string };
+  }>({
+    enhancement: {},
+    obsolescence: {},
+    retrieval: {},
+    reversal: {}
+  });
+  
+  // Add the handler function
+  const handleDeepDiveResponse = (category: string, questionIndex: number, response: string) => {
+    setDeepDiveResponses(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [questionIndex]: response
+      }
+    }));
+  };
+
   // Analysis parameters
   const [parameters, setParameters] = useState({
     timeScope: 50,  // 0: Immediate effects, 100: Long-term effects
@@ -524,7 +545,7 @@ const McLuhanAnalyzer = () => {
             <SoftUICardTitle>Deep Dive Exploration</SoftUICardTitle>
           </SoftUICardHeader>
           <SoftUICardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ gridAutoRows: "auto" }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ gridAutoRows: "auto" }}>
               {/* Enhancement */}
               <SoftUICard>
                 <SoftUICardHeader>
@@ -549,6 +570,9 @@ const McLuhanAnalyzer = () => {
                             category="enhancement"
                             questionIndex={index}
                             technology={technology}
+                            selectedLLM={selectedLLM}
+                            onDeepDiveResponse={handleDeepDiveResponse}
+                            
                           />
                         ))}
                       </div>
@@ -574,13 +598,15 @@ const McLuhanAnalyzer = () => {
                     <div>
                       <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
                       <div className="space-y-4">
-                        {explorationResults.content.enhancement.questions.map((question, index) => (
+                        {explorationResults.content.obsolescence.questions.map((question, index) => (
                           <QuestionWithDeepDive
                             key={index}
                             question={question}
-                            category="enhancement"
+                            category="obsolescence"
                             questionIndex={index}
                             technology={technology}
+                            selectedLLM={selectedLLM}  // Add this
+                            onDeepDiveResponse={handleDeepDiveResponse}
                           />
                         ))}
                       </div>
@@ -606,13 +632,15 @@ const McLuhanAnalyzer = () => {
                     <div>
                       <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
                       <div className="space-y-4">
-                        {explorationResults.content.enhancement.questions.map((question, index) => (
+                        {explorationResults.content.retrieval.questions.map((question, index) => (
                           <QuestionWithDeepDive
                             key={index}
                             question={question}
-                            category="enhancement"
+                            category="retrieval"
                             questionIndex={index}
                             technology={technology}
+                            selectedLLM={selectedLLM}  // Add this
+                            onDeepDiveResponse={handleDeepDiveResponse}
                           />
                         ))}
                       </div>
@@ -636,13 +664,15 @@ const McLuhanAnalyzer = () => {
                     <div>
                       <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
                       <div className="space-y-4">
-                        {explorationResults.content.enhancement.questions.map((question, index) => (
+                        {explorationResults.content.reversal.questions.map((question, index) => (
                           <QuestionWithDeepDive
                             key={index}
                             question={question}
-                            category="enhancement"
+                            category="reversal"
                             questionIndex={index}
                             technology={technology}
+                            selectedLLM={selectedLLM}  // Add this
+                            onDeepDiveResponse={handleDeepDiveResponse}
                           />
                         ))}
                       </div>
@@ -652,31 +682,32 @@ const McLuhanAnalyzer = () => {
               </SoftUICard>
             </div>
             <div className="mt-6">
-    <div className="flex justify-center">
-      <Button
-        onClick={() => setShowReport(!showReport)}
-        className="w-full md:w-auto"
-        style={{ color: 'rgb(237 113 26)' }}
-      >
-        {showReport ? 'Hide Report' : 'Generate Complete Report'}
-      </Button>
-    </div>
-  </div>
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setShowReport(!showReport)}
+                  className="w-full md:w-auto"
+                  style={{ color: 'rgb(237 113 26)' }}
+                >
+                  {showReport ? 'Hide Report' : 'Generate Complete Report'}
+                </Button>
+              </div>
+            </div>
           </SoftUICardContent>
         </SoftUICard>
       )}
 
 
 
-{/* Report Section */}
-{showReport && explorationResults && (
-  <McLuhanReport
-    technology={technology}
-    analysisResults={analysisResults}
-    explorationResults={explorationResults}
-    timeline={parameters.timeline}
-  />
-)}
+      {/* Report Section */}
+      {showReport && explorationResults && (
+        <McLuhanReport
+          technology={technology}
+          analysisResults={analysisResults}
+          explorationResults={explorationResults}
+          deepDiveResponses={deepDiveResponses}
+          timeline={parameters.timeline}
+        />
+      )}
     </div>
   );
 };
