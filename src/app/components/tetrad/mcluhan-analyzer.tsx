@@ -13,6 +13,7 @@ import styled from 'styled-components';
 import { ExplorationResults } from './ExplorationResults';
 import QuestionWithDeepDive from './QuestionWithDeepDive';
 import { ExplorationResponse } from './types/types';
+
 import {
   Maximize2,    // For Enhancement
   MinusCircle,  // For Obsolescence

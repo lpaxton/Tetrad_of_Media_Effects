@@ -1,0 +1,114 @@
+@media print {
+    /* Ensure the report is visible */
+    .mcluhan-report {
+      display: block !important;
+      visibility: visible !important;
+      background: white !important;
+      color: black !important;
+      width: 100% !important;
+    }
+  
+    /* Hide everything else */
+    .sc-KXCwU.hLvonL {
+        display: none;
+    }
+
+    nextjs-portal {
+        display: none;
+    }
+  
+    /* Hide the print button when printing */
+    nextjs-portal {
+    display: none;
+}
+  
+    /* Ensure text is visible */
+
+    KXCwU.hLvonL.mcluhan-report {
+        display: block;
+    }
+    .text-muted-foreground {
+      color: #444 !important;
+      opacity: 1 !important;
+    }
+  
+    /* Ensure headers are visible and don't break */
+    h1, h2, h3, h4, h5, h6 {
+      color: black !important;
+      break-after: avoid !important;
+      page-break-after: avoid !important;
+    }
+  
+    /* Remove card styling that might interfere */
+    .soft-ui-card {
+      box-shadow: none !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+  
+    /* Ensure sections don't break awkwardly */
+    section {
+      break-inside: auto !important;
+      page-break-inside: auto !important;
+      margin-bottom: 20px !important;
+    }
+  
+    /* Ensure lists are properly displayed */
+    ul, ol {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+    }
+  
+    /* Hide icons in print */
+    svg {
+      display: none !important;
+    }
+  
+    /* Set page margins */
+    @page {
+      margin: 2cm;
+      size: A4;
+    }
+  
+    /* Ensure all content is black for better printing */
+    * {
+      color: black !important;
+      background: white !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  
+    /* Force display for main content sections */
+    .space-y-8 {
+      display: block !important;
+    }
+  
+    /* Ensure borders are visible */
+    .border-b,
+    .border-t {
+      border-color: #ddd !important;
+      border-style: solid !important;
+    }
+  
+    /* Force content visibility */
+    .soft-ui-card-content,
+    .soft-ui-card-header {
+      display: block !important;
+      visibility: visible !important;
+    }
+  
+    /* Ensure proper spacing */
+    .pb-6 {
+      padding-bottom: 0rem !important;
+    }
+  
+    .space-y-4 > * + * {
+      margin-top: 0rem !important;
+    }
+  
+    /* Ensure proper list display */
+    .list-disc {
+      list-style-type: disc !important;
+      padding-left: 2rem !important;
+    }
+  }
