@@ -362,6 +362,8 @@ const McLuhanAnalyzer = () => {
 
                 {/* Controls */}
                 <div className="space-y-4">
+                <h2 className="sc-eaUbBy fWhFkO">Select LLM</h2>
+                <label className="text-sm font-medium">Claude is a paid serivces and Deepseek is free local LLM (is a little slower).</label>
                   <div className="flex items-center space-x-2" style={{ margin:"20px auto", width:"fit-content" }}>
                   <label className="text-sm">Use Local Claude</label>
                     <Switch
@@ -370,7 +372,7 @@ const McLuhanAnalyzer = () => {
                         setSelectedLLM(checked ? 'ollama' : 'claude')
                       }
                     />
-                    <label className="text-sm">Use Local Deepseek</label>
+                    <label className="text-sm" style={{ color: 'rgb(237 113 26)' }}>Use Local Deepseek</label>
                   </div>
 
                   <Button
