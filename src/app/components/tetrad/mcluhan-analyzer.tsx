@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from '../ui/alert';
 import { SoftUICard, SoftUICardHeader, SoftUICardTitle, SoftUICardContent } from '../ui/card';
 import { Slider } from '../ui/slider';
@@ -18,12 +18,28 @@ import {
   Maximize2,    // For Enhancement
   MinusCircle,  // For Obsolescence
   RotateCcw,    // For Retrieval
-  FlipHorizontal // For Reversal
+  FlipHorizontal, // For Reversal
+  HomeIcon, Settings, Search, ArrowDownCircle, FileText
 } from 'lucide-react';
 import FlipCard from './FlipCard';
 import { generateCounterpartContent } from './counterpartContent';
 import McLuhanReport from './McLuhanReport';
 import './flip-card.css';
+
+type NavSection = {
+  id: string;
+  title: string;
+  icon?: React.ReactNode;
+};
+
+const navSections: NavSection[] = [
+  { id: 'introduction', title: 'Introduction', icon: <HomeIcon className="h-4 w-4" /> },
+  { id: 'analysis-parameters', title: 'Analysis Parameters', icon: <Settings className="h-4 w-4" /> },
+  { id: 'tetrad-analysis', title: 'Tetrad Analysis', icon: <Search className="h-4 w-4" /> },
+  { id: 'deep-dive', title: 'Deep Dive Exploration', icon: <ArrowDownCircle className="h-4 w-4" /> },
+  { id: 'full-report', title: 'Complete Report', icon: <FileText className="h-4 w-4" /> },
+];
+
 const McLuhanAnalyzer = () => {
   const [technology, setTechnology] = useState('');
   const [temperature, setTemperature] = useState(0.7);
@@ -34,7 +50,7 @@ const McLuhanAnalyzer = () => {
   const [explorationResults, setExplorationResults] = useState<ExplorationResponse | null>(null);
   const [isLoadingExploration, setIsLoadingExploration] = useState(false);
   const [showReport, setShowReport] = useState(false);
-
+  const [activeSection, setActiveSection] = useState('introduction');
 
   const [deepDiveResponses, setDeepDiveResponses] = useState<{
     [key: string]: { [key: number]: string };
@@ -157,558 +173,617 @@ const McLuhanAnalyzer = () => {
     }
   };
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = navSections.map(section => ({
+        id: section.id,
+        element: document.getElementById(section.id)
+      }));
+      
+      const currentSection = sections.find(section => {
+        if (!section.element) return false;
+        const rect = section.element.getBoundingClientRect();
+        return rect.top <= 100 && rect.bottom > 100;
+      });
+
+      if (currentSection) {
+        setActiveSection(currentSection.id);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Introduction Section */}
-      <SoftUICard>
-        <SoftUICardHeader>
-          <SoftUICardTitle>McLuhan&apos;s Tetrad of Media Effects</SoftUICardTitle>
-          <div className="text-muted-foreground">
-            Analyze any technology or medium using McLuhan&apos;s four laws of media
-          </div>
-        </SoftUICardHeader>
-        <SoftUICardContent>
-          <div className="prose dark:prose-invert">
-            <p>
-              Marshall McLuhan&apos;s tetrad examines the effects of technologies
-              and media through four aspects:
-            </p>
-            <ol className="space-y-2">
-              <li><strong>Enhancement:</strong> What does the medium amplify or intensify?</li>
-              <li><strong>Obsolescence:</strong> What does the medium drive out of prominence?</li>
-              <li><strong>Retrieval:</strong> What does the medium recover which was previously lost?</li>
-              <li><strong>Reversal:</strong> What does the medium flip into when pushed to extremes?</li>
-            </ol>
-          </div>
-        </SoftUICardContent>
-      </SoftUICard>
+    <div className="flex max-w-2xl gap-6 relative min-h-screen" style={{  paddingLeft:"20px", margin:"0 auto", width:"90%" }}>
+      {/* Add sticky navigation */}
+      <nav className="hidden lg:block sticky top-4 h-fit w-60 min-w-[240px]" >
+        <SoftUICard>
+          <SoftUICardHeader>
+            <SoftUICardTitle className="text-sm">Navigation</SoftUICardTitle>
+          </SoftUICardHeader>
+          <SoftUICardContent>
+            <ul className="space-y-2">
+              {navSections.map((section) => (
+                <li key={section.id}>
+                  <a
+                    href={`#${section.id}`}
+                    className={`
+                      flex items-center gap-2 px-3 py-2 rounded-md text-sm
+                      transition-colors duration-200
+                      ${activeSection === section.id
+                        ? 'bg-orange-100 text-orange-600'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-slate-100'
+                      }
+                    `}
+                  >
+                    <span className="text-inherit">{section.icon}</span>
+                    {section.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </SoftUICardContent>
+        </SoftUICard>
+      </nav>
 
-      {/* Analysis Parameters */}
-      <SoftUICard>
-        <SoftUICardHeader>
-          <SoftUICardTitle>Analysis Parameters</SoftUICardTitle>
-        </SoftUICardHeader>
-        <SoftUICardContent>
-          <div className="space-y-6">
-            {/* Technology Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Technology or Medium to Analyze
-              </label>
-              <Input
-                value={technology}
-                onChange={(e) => setTechnology(e.target.value)}
-                placeholder="e.g., Smartphone, Social Media, Virtual Reality"
-              />
-            </div>
-
-            {/* Time Scope Slider - Already exists */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Time Scope</label>
-              <Slider
-                value={[parameters.timeScope]}
-                onValueChange={(value) => setParameters(p => ({ ...p, timeScope: value[0] }))}
-                max={100}
-                step={1}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Immediate</span>
-                <p className="text-sm text-muted-foreground">{getTimeScopeLabel()}</p>
-                <span>Long-term</span>
+      {/* Wrap main content */}
+      <div className="flex-1" style={{ flex:2,  }} >
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* Introduction Section */}
+          <SoftUICard id="introduction">
+            <SoftUICardHeader>
+              <SoftUICardTitle>McLuhan&apos;s Tetrad of Media Effects</SoftUICardTitle>
+              <div className="text-muted-foreground">
+                Analyze any technology or medium using McLuhan&apos;s four laws of media
               </div>
-            </div>
-
-            {/* Scale Slider */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Impact Scale</label>
-              <Slider
-                value={[parameters.scale]}
-                onValueChange={(value) => setParameters(p => ({ ...p, scale: value[0] }))}
-                max={100}
-                step={1}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Individual</span>
-                <p className="text-sm text-muted-foreground">{getScaleLabel()}</p>
-                <span>Societal</span>
-              </div>
-            </div>
-
-            {/* Depth Slider */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Analysis Depth</label>
-              <Slider
-                value={[parameters.depth]}
-                onValueChange={(value) => setParameters(p => ({ ...p, depth: value[0] }))}
-                max={100}
-                step={1}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Practical</span>
-                <p className="text-sm text-muted-foreground">{getDepthLabel()}</p>
-                <span>Philosophical</span>
-              </div>
-            </div>
-
-            {/* Timeline Slider - Already exists */}
-            {/* Timeline Slider */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Analysis Timeline</label>
-              <div className="sc-hWWBcw frWHZL">
-                <Slider
-                  value={[parameters.timeline]}
-                  onValueChange={(value) => setParameters(p => ({ ...p, timeline: value[0] }))}
-                  min={2025}
-                  max={2055}
-                  step={1}
-                />
-                <span className="text-sm text-muted-foreground w-16">
-                  {parameters.timeline}
-                </span>
-              </div>
-            </div>
-
-            {/* Temperature Slider */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">LLM Temperature</label>
-              <Slider
-                value={[temperature * 100]}
-                onValueChange={(value) => setTemperature(value[0] / 100)}
-                max={100}
-                step={1}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>More Focused ({(temperature * 100).toFixed(0)}%)</span>
-                <p className="text-sm text-muted-foreground">
-                  {temperature < 0.33 ? "Consistent, deterministic outputs"
-                    : temperature < 0.66 ? "Balanced creativity and consistency"
-                      : "More creative, diverse outputs"}
+            </SoftUICardHeader>
+            <SoftUICardContent>
+              <div className="prose dark:prose-invert">
+                <p>
+                  Marshall McLuhan&apos;s tetrad examines the effects of technologies
+                  and media through four aspects:
                 </p>
-                <span>More Creative</span>
+                <ol className="space-y-2">
+                  <li><strong>Enhancement:</strong> What does the medium amplify or intensify?</li>
+                  <li><strong>Obsolescence:</strong> What does the medium drive out of prominence?</li>
+                  <li><strong>Retrieval:</strong> What does the medium recover which was previously lost?</li>
+                  <li><strong>Reversal:</strong> What does the medium flip into when pushed to extremes?</li>
+                </ol>
               </div>
-            </div>
+            </SoftUICardContent>
+          </SoftUICard>
 
-            {/* Controls */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={selectedLLM === 'ollama'}
-                  onCheckedChange={(checked) =>
-                    setSelectedLLM(checked ? 'ollama' : 'claude')
-                  }
-                />
-                <label className="text-sm">Use Local Deepseek</label>
-              </div>
+          {/* Analysis Parameters */}
+          <SoftUICard id="analysis-parameters">
+            <SoftUICardHeader>
+              <SoftUICardTitle>Analysis Parameters</SoftUICardTitle>
+            </SoftUICardHeader>
+            <SoftUICardContent>
+              <div className="space-y-6">
+                {/* Technology Input */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Technology or Medium to Analyze
+                  </label>
+                  <Input
+                    value={technology}
+                    onChange={(e) => setTechnology(e.target.value)}
+                    placeholder="e.g., Smartphone, Social Media, Virtual Reality"
+                  />
+                </div>
 
-              <Button
-                disabled={!technology || isLoading}
-                onClick={handleGenerateAnalysis}
-                className="w-full" style={{ color: 'rgb(237 113 26)' }}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="animate-spin" />
-                    <span>Generating...</span>
+                {/* Time Scope Slider - Already exists */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Time Scope</label>
+                  <Slider
+                    value={[parameters.timeScope]}
+                    onValueChange={(value) => setParameters(p => ({ ...p, timeScope: value[0] }))}
+                    max={100}
+                    step={1}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Immediate</span>
+                    <p className="text-sm text-muted-foreground">{getTimeScopeLabel()}</p>
+                    <span>Long-term</span>
                   </div>
-                ) : (
-                  `Generate ${selectedLLM === 'claude' ? 'Claude' : 'Deepseek'} Analysis`
-                )}
-              </Button>
-            </div>
+                </div>
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-        </SoftUICardContent>
-      </SoftUICard>
+                {/* Scale Slider */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Impact Scale</label>
+                  <Slider
+                    value={[parameters.scale]}
+                    onValueChange={(value) => setParameters(p => ({ ...p, scale: value[0] }))}
+                    max={100}
+                    step={1}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Individual</span>
+                    <p className="text-sm text-muted-foreground">{getScaleLabel()}</p>
+                    <span>Societal</span>
+                  </div>
+                </div>
 
-      {/* Analysis Results */}
-      {analysisResults && (
-        <SoftUICard>
-          <SoftUICardHeader>
-            <SoftUICardTitle>McLuhan Tetrad Analysis</SoftUICardTitle>
-          </SoftUICardHeader>
-          <SoftUICardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Enhancement */}
-              <FlipCard
-                title="Enhancement"
-                icon={<Maximize2 className="h-5 w-5" style={{ color: '#708de6' }} />}
-                frontContent={
-                  <div className="space-y-4">
-                    <ul className="list-disc pl-5 space-y-2">
-                      {analysisResults.content?.enhancement?.map((item: string, index: number) => (
-                        <li key={index} className="text-muted-foreground">{item}</li>
-                      ))}
-                    </ul>
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
-                      <p className="text-muted-foreground">
-                        {generateCounterpartContent(technology).enhancement.implications}
-                      </p>
-                    </div>
+                {/* Depth Slider */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Analysis Depth</label>
+                  <Slider
+                    value={[parameters.depth]}
+                    onValueChange={(value) => setParameters(p => ({ ...p, depth: value[0] }))}
+                    max={100}
+                    step={1}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Practical</span>
+                    <p className="text-sm text-muted-foreground">{getDepthLabel()}</p>
+                    <span>Philosophical</span>
                   </div>
-                }
-                backContent={
-                  <div className="p-4 h-full">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-sm font-medium mb-2 text-slate-600">Potential Limitations:</h3>
-                        <ul className="list-disc pl-5 space-y-2 ">
-                          {generateCounterpartContent(technology).enhancement.limitations.map((limitation, index) => (
-                            <li key={index}>{limitation}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
-                        <p className="">
-                          {generateCounterpartContent(technology).enhancement.implications}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                }
-              />
+                </div>
 
-              {/* Obsolescence */}
-              <FlipCard
-                title="Obsolescence"
-                icon={<MinusCircle className="h-5 w-5" style={{ color: '#708de6' }} />}
-                frontContent={
-                  <div className="space-y-4">
-                    <ul className="list-disc pl-5 space-y-2">
-                      {analysisResults.content?.obsolescence?.map((item: string, index: number) => (
-                        <li key={index} className="text-muted-foreground">{item}</li>
-                      ))}
-                    </ul>
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
-                      <p className="text-muted-foreground">
-                        {generateCounterpartContent(technology).obsolescence.implications}
-                      </p>
-                    </div>
+                {/* Timeline Slider - Already exists */}
+                {/* Timeline Slider */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Analysis Timeline</label>
+                  <div className="sc-hWWBcw frWHZL">
+                    <Slider
+                      value={[parameters.timeline]}
+                      onValueChange={(value) => setParameters(p => ({ ...p, timeline: value[0] }))}
+                      min={2025}
+                      max={2055}
+                      step={1}
+                    />
+                    <span className="text-sm text-muted-foreground w-16">
+                      {parameters.timeline}
+                    </span>
                   </div>
-                }
-                backContent={
-                  <div className="p-4 h-full">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Potential Limitations:</h3>
-                        <ul className="list-disc pl-5 space-y-2 ">
-                          {generateCounterpartContent(technology).obsolescence.limitations.map((limitation, index) => (
-                            <li key={index}>{limitation}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
-                        <p className="">
-                          {generateCounterpartContent(technology).obsolescence.implications}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                }
-              />
+                </div>
 
-              {/* Retrieval */}
-              <FlipCard
-                title="Retrieval"
-                icon={<RotateCcw className="h-5 w-5" style={{ color: '#708de6' }} />}
-                frontContent={
-                  <div className="space-y-4">
-                    <ul className="list-disc pl-5 space-y-2">
-                      {analysisResults.content?.retrieval?.map((item: string, index: number) => (
-                        <li key={index} className="text-muted-foreground">{item}</li>
-                      ))}
-                    </ul>
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
-                      <p className="text-muted-foreground">
-                        {generateCounterpartContent(technology).retrieval.implications}
-                      </p>
-                    </div>
-                  </div>
-                }
-                backContent={
-                  <div className="p-4 h-full">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Potential Limitations:</h3>
-                        <ul className="list-disc pl-5 space-y-2 ">
-                          {generateCounterpartContent(technology).retrieval.limitations.map((limitation, index) => (
-                            <li key={index}>{limitation}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
-                        <p className="">
-                          {generateCounterpartContent(technology).retrieval.implications}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                }
-              />
-
-              {/* Reversal */}
-              <FlipCard
-                title="Reversal"
-                icon={<FlipHorizontal className="h-5 w-5" style={{ color: '#708de6' }} />}
-                frontContent={
-                  <div className="space-y-4">
-                    <ul className="list-disc pl-5 space-y-2">
-                      {analysisResults.content?.reversal?.map((item: string, index: number) => (
-                        <li key={index} className="text-muted-foreground">{item}</li>
-                      ))}
-                    </ul>
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
-                      <p className="text-muted-foreground">
-                        {generateCounterpartContent(technology).reversal.implications}
-                      </p>
-                    </div>
-                  </div>
-                }
-                backContent={
-                  <div className="p-4 h-full">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Potential Limitations:</h3>
-                        <ul className="list-disc pl-5 space-y-2 ">
-                          {generateCounterpartContent(technology).reversal.limitations.map((limitation, index) => (
-                            <li key={index}>{limitation}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
-                        <p className="">
-                          {generateCounterpartContent(technology).reversal.implications}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                }
-              />
-            </div>
-
-            {/* Analysis Summary */}
-            <div className="mt-6">
-              <SoftUICard>
-                <SoftUICardHeader>
-                  <SoftUICardTitle>Analysis Summary</SoftUICardTitle>
-                </SoftUICardHeader>
-                <SoftUICardContent>
-                  <div className="space-y-4">
-                    <p className="text-muted-foreground">
-                      {analysisResults.content.analysis}
+                {/* Temperature Slider */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">LLM Temperature</label>
+                  <Slider
+                    value={[temperature * 100]}
+                    onValueChange={(value) => setTemperature(value[0] / 100)}
+                    max={100}
+                    step={1}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>More Focused ({(temperature * 100).toFixed(0)}%)</span>
+                    <p className="text-sm text-muted-foreground">
+                      {temperature < 0.33 ? "Consistent, deterministic outputs"
+                        : temperature < 0.66 ? "Balanced creativity and consistency"
+                          : "More creative, diverse outputs"}
                     </p>
-                    <div className="flex items-center mt-4 text-sm">
-                      <span className="font-medium">Confidence Score:</span>
-                      <span className="ml-2 text-muted-foreground">
-                        {(analysisResults.content.confidence * 100).toFixed(1)}%
-                      </span>
-                    </div>
+                    <span>More Creative</span>
                   </div>
-                </SoftUICardContent>
-              </SoftUICard>
-            </div>
-            <div className="mt-6">
-              <div className="flex justify-center">
-                <Button
-                  onClick={handleExploreDeeper}
-                  disabled={isLoadingExploration}
-                  className="w-full md:w-auto" style={{ color: 'rgb(237 113 26)' }}
-                >
-                  {isLoadingExploration ? (
-                    <div className="flex items-center gap-2" >
-                      <Loader2 className="animate-spin" />
-                      <span>Generating Exploration...</span>
-                    </div>
-                  ) : (
-                    'Dig Deeper'
-                  )}
-                </Button>
+                </div>
+
+                {/* Controls */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2" style={{ margin:"20px auto", width:"fit-content" }}>
+                  <label className="text-sm">Use Local Claude</label>
+                    <Switch
+                      checked={selectedLLM === 'ollama'}
+                      onCheckedChange={(checked) =>
+                        setSelectedLLM(checked ? 'ollama' : 'claude')
+                      }
+                    />
+                    <label className="text-sm">Use Local Deepseek</label>
+                  </div>
+
+                  <Button
+                    disabled={!technology || isLoading}
+                    onClick={handleGenerateAnalysis}
+                    className="w-full" style={{ color: 'rgb(237 113 26)' }}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="animate-spin" />
+                        <span>Generating...</span>
+                      </div>
+                    ) : (
+                      `Generate ${selectedLLM === 'claude' ? 'Claude' : 'Deepseek'} Analysis`
+                    )}
+                  </Button>
+                </div>
+
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
               </div>
-            </div>
-          </SoftUICardContent>
-        </SoftUICard>
-      )}
-      {explorationResults && (
-        <SoftUICard>
-          <SoftUICardHeader>
-            <SoftUICardTitle>Deep Dive Exploration</SoftUICardTitle>
-          </SoftUICardHeader>
-          <SoftUICardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ gridAutoRows: "auto" }}>
-              {/* Enhancement */}
-              <SoftUICard>
-                <SoftUICardHeader>
-                  <div className="flex items-center space-x-2">
-                    <Maximize2 className="h-5 w-5" style={{ color: '#708de6' }} />
-                    <SoftUICardTitle>Enhancement</SoftUICardTitle>
-                  </div>
-                </SoftUICardHeader>
-                <SoftUICardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Example:</h3>
-                      <p className="text-muted-foreground">{explorationResults.content.enhancement.example}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+            </SoftUICardContent>
+          </SoftUICard>
+
+          {/* Analysis Results */}
+          {analysisResults && (
+            <SoftUICard id="tetrad-analysis">
+              <SoftUICardHeader>
+                <SoftUICardTitle>McLuhan Tetrad Analysis</SoftUICardTitle>
+              </SoftUICardHeader>
+              <SoftUICardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Enhancement */}
+                  <FlipCard
+                    title="Enhancement"
+                    icon={<Maximize2 className="h-5 w-5" style={{ color: '#708de6' }} />}
+                    frontContent={
                       <div className="space-y-4">
-                        {explorationResults.content.enhancement.questions.map((question, index) => (
-                          <QuestionWithDeepDive
-                            key={index}
-                            question={question}
-                            category="enhancement"
-                            questionIndex={index}
-                            technology={technology}
-                            selectedLLM={selectedLLM}
-                            onDeepDiveResponse={handleDeepDiveResponse}
-                            
-                          />
-                        ))}
+                        <ul className="list-disc pl-5 space-y-2">
+                          {analysisResults.content?.enhancement?.map((item: string, index: number) => (
+                            <li key={index} className="text-muted-foreground">{item}</li>
+                          ))}
+                        </ul>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
+                          <p className="text-muted-foreground">
+                            {generateCounterpartContent(technology).enhancement.implications}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </SoftUICardContent>
-              </SoftUICard>
+                    }
+                    backContent={
+                      <div className="p-4 h-full">
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-sm font-medium mb-2 text-slate-600">Potential Limitations:</h3>
+                            <ul className="list-disc pl-5 space-y-2 ">
+                              {generateCounterpartContent(technology).enhancement.limitations.map((limitation, index) => (
+                                <li key={index}>{limitation}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
+                            <p className="">
+                              {generateCounterpartContent(technology).enhancement.implications}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  />
 
-              {/* Obsolescence */}
-              <SoftUICard>
-                <SoftUICardHeader>
-                  <div className="flex items-center space-x-2">
-                    <MinusCircle className="h-5 w-5" style={{ color: '#708de6' }} />
-                    <SoftUICardTitle>Obsolescence</SoftUICardTitle>
-                  </div>
-                </SoftUICardHeader>
-                <SoftUICardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Example:</h3>
-                      <p className="text-muted-foreground">{explorationResults.content.obsolescence.example}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                  {/* Obsolescence */}
+                  <FlipCard
+                    title="Obsolescence"
+                    icon={<MinusCircle className="h-5 w-5" style={{ color: '#708de6' }} />}
+                    frontContent={
                       <div className="space-y-4">
-                        {explorationResults.content.obsolescence.questions.map((question, index) => (
-                          <QuestionWithDeepDive
-                            key={index}
-                            question={question}
-                            category="obsolescence"
-                            questionIndex={index}
-                            technology={technology}
-                            selectedLLM={selectedLLM}  // Add this
-                            onDeepDiveResponse={handleDeepDiveResponse}
-                          />
-                        ))}
+                        <ul className="list-disc pl-5 space-y-2">
+                          {analysisResults.content?.obsolescence?.map((item: string, index: number) => (
+                            <li key={index} className="text-muted-foreground">{item}</li>
+                          ))}
+                        </ul>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
+                          <p className="text-muted-foreground">
+                            {generateCounterpartContent(technology).obsolescence.implications}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </SoftUICardContent>
-              </SoftUICard>
+                    }
+                    backContent={
+                      <div className="p-4 h-full">
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">Potential Limitations:</h3>
+                            <ul className="list-disc pl-5 space-y-2 ">
+                              {generateCounterpartContent(technology).obsolescence.limitations.map((limitation, index) => (
+                                <li key={index}>{limitation}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
+                            <p className="">
+                              {generateCounterpartContent(technology).obsolescence.implications}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  />
 
-              {/* Retrieval */}
-              <SoftUICard>
-                <SoftUICardHeader>
-                  <div className="flex items-center space-x-2">
-                    <RotateCcw className="h-5 w-5" style={{ color: '#708de6' }} />
-                    <SoftUICardTitle>Retrieval</SoftUICardTitle>
-                  </div>
-                </SoftUICardHeader>
-                <SoftUICardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Example:</h3>
-                      <p className="text-muted-foreground">{explorationResults.content.retrieval.example}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                  {/* Retrieval */}
+                  <FlipCard
+                    title="Retrieval"
+                    icon={<RotateCcw className="h-5 w-5" style={{ color: '#708de6' }} />}
+                    frontContent={
                       <div className="space-y-4">
-                        {explorationResults.content.retrieval.questions.map((question, index) => (
-                          <QuestionWithDeepDive
-                            key={index}
-                            question={question}
-                            category="retrieval"
-                            questionIndex={index}
-                            technology={technology}
-                            selectedLLM={selectedLLM}  // Add this
-                            onDeepDiveResponse={handleDeepDiveResponse}
-                          />
-                        ))}
+                        <ul className="list-disc pl-5 space-y-2">
+                          {analysisResults.content?.retrieval?.map((item: string, index: number) => (
+                            <li key={index} className="text-muted-foreground">{item}</li>
+                          ))}
+                        </ul>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
+                          <p className="text-muted-foreground">
+                            {generateCounterpartContent(technology).retrieval.implications}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </SoftUICardContent>
-              </SoftUICard>
-              <SoftUICard>
-                <SoftUICardHeader>
-                  <div className="flex items-center space-x-2">
-                    <FlipHorizontal className="h-5 w-5" style={{ color: '#708de6' }} />
-                    <SoftUICardTitle>Reversal</SoftUICardTitle>
-                  </div>
-                </SoftUICardHeader>
-                <SoftUICardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Example:</h3>
-                      <p className="text-muted-foreground">{explorationResults.content.reversal.example}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                    }
+                    backContent={
+                      <div className="p-4 h-full">
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">Potential Limitations:</h3>
+                            <ul className="list-disc pl-5 space-y-2 ">
+                              {generateCounterpartContent(technology).retrieval.limitations.map((limitation, index) => (
+                                <li key={index}>{limitation}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
+                            <p className="">
+                              {generateCounterpartContent(technology).retrieval.implications}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  />
+
+                  {/* Reversal */}
+                  <FlipCard
+                    title="Reversal"
+                    icon={<FlipHorizontal className="h-5 w-5" style={{ color: '#708de6' }} />}
+                    frontContent={
                       <div className="space-y-4">
-                        {explorationResults.content.reversal.questions.map((question, index) => (
-                          <QuestionWithDeepDive
-                            key={index}
-                            question={question}
-                            category="reversal"
-                            questionIndex={index}
-                            technology={technology}
-                            selectedLLM={selectedLLM}  // Add this
-                            onDeepDiveResponse={handleDeepDiveResponse}
-                          />
-                        ))}
+                        <ul className="list-disc pl-5 space-y-2">
+                          {analysisResults.content?.reversal?.map((item: string, index: number) => (
+                            <li key={index} className="text-muted-foreground">{item}</li>
+                          ))}
+                        </ul>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
+                          <p className="text-muted-foreground">
+                            {generateCounterpartContent(technology).reversal.implications}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    }
+                    backContent={
+                      <div className="p-4 h-full">
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">Potential Limitations:</h3>
+                            <ul className="list-disc pl-5 space-y-2 ">
+                              {generateCounterpartContent(technology).reversal.limitations.map((limitation, index) => (
+                                <li key={index}>{limitation}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">Critical Considerations:</h3>
+                            <p className="">
+                              {generateCounterpartContent(technology).reversal.implications}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  />
+                </div>
+
+                {/* Analysis Summary */}
+                <div className="mt-6">
+                  <SoftUICard>
+                    <SoftUICardHeader>
+                      <SoftUICardTitle>Analysis Summary</SoftUICardTitle>
+                    </SoftUICardHeader>
+                    <SoftUICardContent>
+                      <div className="space-y-4">
+                        <p className="text-muted-foreground">
+                          {analysisResults.content.analysis}
+                        </p>
+                        <div className="flex items-center mt-4 text-sm">
+                          <span className="font-medium">Confidence Score:</span>
+                          <span className="ml-2 text-muted-foreground">
+                            {(analysisResults.content.confidence * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    </SoftUICardContent>
+                  </SoftUICard>
+                </div>
+                <div className="mt-6">
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={handleExploreDeeper}
+                      disabled={isLoadingExploration}
+                      className="w-full md:w-auto" style={{ color: 'rgb(237 113 26)' }}
+                    >
+                      {isLoadingExploration ? (
+                        <div className="flex items-center gap-2" >
+                          <Loader2 className="animate-spin" />
+                          <span>Generating Exploration...</span>
+                        </div>
+                      ) : (
+                        'Dig Deeper'
+                      )}
+                    </Button>
                   </div>
-                </SoftUICardContent>
-              </SoftUICard>
-            </div>
-            <div className="mt-6">
-              <div className="flex justify-center">
-                <Button
-                  onClick={() => setShowReport(!showReport)}
-                  className="w-full md:w-auto"
-                  style={{ color: 'rgb(237 113 26)' }}
-                >
-                  {showReport ? 'Hide Report' : 'Generate Complete Report'}
-                </Button>
-              </div>
-            </div>
-          </SoftUICardContent>
-        </SoftUICard>
-      )}
+                </div>
+              </SoftUICardContent>
+            </SoftUICard>
+          )}
+          {explorationResults && (
+            <SoftUICard id="deep-dive">
+              <SoftUICardHeader>
+                <SoftUICardTitle>Deep Dive Exploration</SoftUICardTitle>
+              </SoftUICardHeader>
+              <SoftUICardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ gridAutoRows: "auto" }}>
+                  {/* Enhancement */}
+                  <SoftUICard>
+                    <SoftUICardHeader>
+                      <div className="flex items-center space-x-2">
+                        <Maximize2 className="h-5 w-5" style={{ color: '#708de6' }} />
+                        <SoftUICardTitle>Enhancement</SoftUICardTitle>
+                      </div>
+                    </SoftUICardHeader>
+                    <SoftUICardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Example:</h3>
+                          <p className="text-muted-foreground">{explorationResults.content.enhancement.example}</p>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                          <div className="space-y-4">
+                            {explorationResults.content.enhancement.questions.map((question, index) => (
+                              <QuestionWithDeepDive
+                                key={index}
+                                question={question}
+                                category="enhancement"
+                                questionIndex={index}
+                                technology={technology}
+                                selectedLLM={selectedLLM}
+                                onDeepDiveResponse={handleDeepDiveResponse}
+                                
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </SoftUICardContent>
+                  </SoftUICard>
+
+                  {/* Obsolescence */}
+                  <SoftUICard>
+                    <SoftUICardHeader>
+                      <div className="flex items-center space-x-2">
+                        <MinusCircle className="h-5 w-5" style={{ color: '#708de6' }} />
+                        <SoftUICardTitle>Obsolescence</SoftUICardTitle>
+                      </div>
+                    </SoftUICardHeader>
+                    <SoftUICardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Example:</h3>
+                          <p className="text-muted-foreground">{explorationResults.content.obsolescence.example}</p>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                          <div className="space-y-4">
+                            {explorationResults.content.obsolescence.questions.map((question, index) => (
+                              <QuestionWithDeepDive
+                                key={index}
+                                question={question}
+                                category="obsolescence"
+                                questionIndex={index}
+                                technology={technology}
+                                selectedLLM={selectedLLM}  // Add this
+                                onDeepDiveResponse={handleDeepDiveResponse}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </SoftUICardContent>
+                  </SoftUICard>
+
+                  {/* Retrieval */}
+                  <SoftUICard>
+                    <SoftUICardHeader>
+                      <div className="flex items-center space-x-2">
+                        <RotateCcw className="h-5 w-5" style={{ color: '#708de6' }} />
+                        <SoftUICardTitle>Retrieval</SoftUICardTitle>
+                      </div>
+                    </SoftUICardHeader>
+                    <SoftUICardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Example:</h3>
+                          <p className="text-muted-foreground">{explorationResults.content.retrieval.example}</p>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                          <div className="space-y-4">
+                            {explorationResults.content.retrieval.questions.map((question, index) => (
+                              <QuestionWithDeepDive
+                                key={index}
+                                question={question}
+                                category="retrieval"
+                                questionIndex={index}
+                                technology={technology}
+                                selectedLLM={selectedLLM}  // Add this
+                                onDeepDiveResponse={handleDeepDiveResponse}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </SoftUICardContent>
+                  </SoftUICard>
+                  <SoftUICard>
+                    <SoftUICardHeader>
+                      <div className="flex items-center space-x-2">
+                        <FlipHorizontal className="h-5 w-5" style={{ color: '#708de6' }} />
+                        <SoftUICardTitle>Reversal</SoftUICardTitle>
+                      </div>
+                    </SoftUICardHeader>
+                    <SoftUICardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Example:</h3>
+                          <p className="text-muted-foreground">{explorationResults.content.reversal.example}</p>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Questions to Consider:</h3>
+                          <div className="space-y-4">
+                            {explorationResults.content.reversal.questions.map((question, index) => (
+                              <QuestionWithDeepDive
+                                key={index}
+                                question={question}
+                                category="reversal"
+                                questionIndex={index}
+                                technology={technology}
+                                selectedLLM={selectedLLM}  // Add this
+                                onDeepDiveResponse={handleDeepDiveResponse}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </SoftUICardContent>
+                  </SoftUICard>
+                </div>
+                <div className="mt-6">
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={() => setShowReport(!showReport)}
+                      className="w-full md:w-auto"
+                      style={{ color: 'rgb(237 113 26)' }}
+                    >
+                      {showReport ? 'Hide Report' : 'Generate Complete Report'}
+                    </Button>
+                  </div>
+                </div>
+              </SoftUICardContent>
+            </SoftUICard>
+          )}
 
 
 
-      {/* Report Section */}
-      {showReport && explorationResults && (
-        <McLuhanReport
-          technology={technology}
-          analysisResults={analysisResults}
-          explorationResults={explorationResults}
-          deepDiveResponses={deepDiveResponses}
-          timeline={parameters.timeline}
-        />
-      )}
+          {/* Report Section */}
+          {showReport && explorationResults && (
+            <McLuhanReport
+              technology={technology}
+              analysisResults={analysisResults}
+              explorationResults={explorationResults}
+              deepDiveResponses={deepDiveResponses}
+              timeline={parameters.timeline}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 };

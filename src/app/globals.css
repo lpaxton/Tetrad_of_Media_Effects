@@ -43,3 +43,11 @@ h3.font-bold.mb-2.capitalize.flex.items-center svg {
 .rotate-y-180 {
   transform: rotateY(180deg);
 }
+
+.max-w-2xl {
+  max-width: 1200px !important;
+}
+
+nav .sc-KXCwU.hLvonL {
+  margin-top: 0px;
+}

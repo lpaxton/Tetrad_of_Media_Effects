@@ -21,6 +21,10 @@
     nextjs-portal {
     display: none;
 }
+
+.print-button.mb-4.flex.justify-end {
+  display: none;
+}
   
     /* Ensure text is visible */
 
@@ -112,3 +116,64 @@
       padding-left: 2rem !important;
     }
   }
+
+  /* Add to your mcluhan-report-print.css */
+
+/* Hide navigation in print */
+@media print {
+  nav {
+    display: none !important;
+  }
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Add padding to account for sticky header if needed */
+section {
+  scroll-margin-top: 2rem;
+}
+
+
+  .page-nav {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 240px;
+    z-index: 50;
+  }
+
+  @media (max-width: 1280px) {
+    .page-nav {
+      display: none;
+    }
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    color: rgb(100, 116, 139);
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .nav-link:hover {
+    background: rgba(100, 116, 139, 0.1);
+    color: rgb(15, 23, 42);
+  }
+
+  .nav-link.active {
+    background: rgba(237, 113, 26, 0.1);
+    color: rgb(237, 113, 26);
+  }
+
+
+  .hLvonL {
+    margin: 0;
+    box-shadow: none;
+
+}

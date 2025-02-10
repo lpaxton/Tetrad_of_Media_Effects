@@ -2,6 +2,8 @@
 import React from 'react';
 import { SoftUICard, SoftUICardHeader, SoftUICardTitle, SoftUICardContent } from '../ui/card';
 import { Button } from '../ui/button';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { Maximize2, MinusCircle, RotateCcw, FlipHorizontal, Download } from 'lucide-react';
 import './mcluhan-report-print.css';
 
@@ -92,21 +94,51 @@ const McLuhanReport: React.FC<McLuhanReportProps> = ({
       </div>
     );
   };
+  const handleSavePDF = async () => {
+    const report = document.querySelector('.mcluhan-report');
+    if (!report) return;
 
+    try {
+      const canvas = await html2canvas(report as HTMLElement, {
+        scale: 2, // Higher scale for better quality
+        useCORS: true,
+        logging: false,
+        windowWidth: report.scrollWidth,
+        windowHeight: report.scrollHeight
+      });
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(
+        canvas.toDataURL('image/png'),
+        'PNG',
+        0,
+        0,
+        imgWidth,
+        imgHeight
+      );
+
+      pdf.save(`McLuhan_Analysis_${technology.replace(/\s+/g, '_')}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
   return (
     <>
       
 
-      <SoftUICard className="mcluhan-report">
+      <SoftUICard id='full-report' className="mcluhan-report">
         <SoftUICardHeader>
           <div style={{ display: 'flex'}}><SoftUICardTitle className="text-2xl">
             McLuhan Tetrad Analysis Report - {technology}
             
-          </SoftUICardTitle><div className="print-button mb-4 flex justify-end">
+          </SoftUICardTitle><div className="print-button mb-4 flex justify-end" style={{ color: 'rgb(237 113 26)', margin: '0 0 0 auto' }}>
         <Button 
           onClick={() => window.print()}
           className="flex items-center gap-2"
-          style={{ color: 'rgb(237 113 26)', margin: '0 0 0 auto' }}
+          style={{ color: 'rgb(237 113 26)' }}
         >
           <Download className="h-4 w-4" />
           Save as PDF
