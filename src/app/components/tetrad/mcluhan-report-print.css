@@ -7,6 +7,12 @@
       color: black !important;
       width: 100% !important;
     }
+
+    .hLvonL {
+      margin: 0;
+      box-shadow: 8px 8px 16px #bebebe00, -8px -8px 16px #ffff;
+  
+  }
   
     /* Hide everything else */
     .sc-KXCwU.hLvonL {
@@ -17,16 +23,16 @@
         display: none;
     }
   
-    /* Hide the print button when printing */
-    nextjs-portal {
+/* Hide the print button when printing */
+nextjs-portal {
     display: none;
 }
 
 .print-button.mb-4.flex.justify-end {
-  display: none;
+    display: none;
 }
-  
-    /* Ensure text is visible */
+
+/* Ensure text is visible */
 
     KXCwU.hLvonL.mcluhan-report {
         display: block;
@@ -166,14 +172,7 @@ section {
     color: rgb(15, 23, 42);
   }
 
-  .nav-link.active {
-    background: rgba(237, 113, 26, 0.1);
-    color: rgb(237, 113, 26);
-  }
-
-
-  .hLvonL {
-    margin: 0;
-    box-shadow: none;
-
+.nav-link.active {
+  background: rgba(237, 113, 26, 0.1);
+  color: rgb(237, 113, 26);
 }
