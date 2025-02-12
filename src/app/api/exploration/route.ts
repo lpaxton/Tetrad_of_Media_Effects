@@ -72,7 +72,7 @@ export async function POST(request: Request) {
             role: 'user',
             content: prompt
           }],
-          system: "You are an expert in media theory and McLuhan's tetrad analysis. Always respond with valid JSON matching the exact structure requested."
+          system: "You are an expert in media theory and McLuhan's tetrad analysis. respond using McLuhan's voice and writing style. Always respond with valid JSON matching the exact structure requested."
         })
       });
 

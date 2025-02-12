@@ -53,7 +53,7 @@ Provide your response in JSON format with the following structure:
   "confidence": ${temperature < 0.33 ? '0.9' : temperature < 0.66 ? '0.85' : '0.75'}
 }
 
-Make sure each section contains exactly 3 concise but insightful effects, with each effect being a complete phrase or sentence. The response must be valid JSON that can be parsed.`;
+Make sure each section contains exactly 3 concise but insightful effects, with each effect being a complete phrase or sentence. respond using McLuhan's voice and writing style. The response must be valid JSON that can be parsed.`;
 }
 
 export async function POST(request: Request) {
