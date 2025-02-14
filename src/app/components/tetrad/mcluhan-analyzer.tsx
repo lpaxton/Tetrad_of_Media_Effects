@@ -9,10 +9,9 @@ import { Button } from '../ui/button';
 import { Loader2 } from 'lucide-react';
 import { performClaudeAnalysis, performOllamaAnalysis } from './analysis-api';
 import { AnalysisParams } from './types/types';
-import styled from 'styled-components';
-import { ExplorationResults } from './ExplorationResults';
 import QuestionWithDeepDive from './QuestionWithDeepDive';
 import { ExplorationResponse } from './types/types';
+import { Knob } from '../ui/knob';
 
 import {
   Maximize2,    // For Enhancement
@@ -25,6 +24,7 @@ import FlipCard from './FlipCard';
 import { generateCounterpartContent } from './counterpartContent';
 import McLuhanReport from './McLuhanReport';
 import './flip-card.css';
+import { display } from 'html2canvas/dist/types/css/property-descriptors/display';
 
 type NavSection = {
   id: string;
@@ -60,7 +60,7 @@ const McLuhanAnalyzer = () => {
     retrieval: {},
     reversal: {}
   });
-  
+
   // Add the handler function
   const handleDeepDiveResponse = (category: string, questionIndex: number, response: string) => {
     setDeepDiveResponses(prev => ({
@@ -179,7 +179,7 @@ const McLuhanAnalyzer = () => {
         id: section.id,
         element: document.getElementById(section.id)
       }));
-      
+
       const currentSection = sections.find(section => {
         if (!section.element) return false;
         const rect = section.element.getBoundingClientRect();
@@ -196,7 +196,7 @@ const McLuhanAnalyzer = () => {
   }, []);
 
   return (
-    <div className="flex max-w-2xl gap-6 relative min-h-screen" style={{  paddingLeft:"20px", margin:"0 auto", width:"90%" }}>
+    <div className="flex max-w-2xl gap-6 relative min-h-screen" style={{ paddingLeft: "20px", margin: "0 auto", width: "90%" }}>
       {/* Add sticky navigation */}
       <nav className="hidden lg:block sticky top-4 h-fit w-60 min-w-[240px]" >
         <SoftUICard>
@@ -229,7 +229,7 @@ const McLuhanAnalyzer = () => {
       </nav>
 
       {/* Wrap main content */}
-      <div className="flex-1" style={{ flex:2,  }} >
+      <div className="flex-1" style={{ flex: 2, }} >
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Introduction Section */}
           <SoftUICard id="introduction">
@@ -258,145 +258,294 @@ const McLuhanAnalyzer = () => {
           {/* Analysis Parameters */}
           <SoftUICard id="analysis-parameters">
             <SoftUICardHeader>
-              <SoftUICardTitle>Analysis Parameters</SoftUICardTitle>
+              <SoftUICardTitle style={{textAlign:"center", paddingBottom:"20px"}}>Analysis Parameters</SoftUICardTitle>
+              <label className="text-sm font-medium" style={{
+                float: 'left',
+                fontFamily: 'monospace',
+                color: '#4a4a4a', fontWeight:"900"
+              }}>Technology or Medium to Analyze</label>
             </SoftUICardHeader>
             <SoftUICardContent>
               <div className="space-y-6">
                 {/* Technology Input */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Technology or Medium to Analyze
-                  </label>
-                  <Input
+
+                  <Input style={{
+                    backgroundColor: '#ddd9c6',
+                    border: '1px solid',
+                    borderRadius: '0px',
+                    width: '100%',
+                    fontFamily: 'monospace',
+                    marginTop: '20px',
+                    minHeight: '60px',
+                    boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                  }}
                     value={technology}
                     onChange={(e) => setTechnology(e.target.value)}
                     placeholder="e.g., Smartphone, Social Media, Virtual Reality"
                   />
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ margin: "0px" }}>
+                  {/* Time Scope Knob */}
 
-                {/* Time Scope Slider - Already exists */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Time Scope</label>
-                  <Slider
-                    value={[parameters.timeScope]}
-                    onValueChange={(value) => setParameters(p => ({ ...p, timeScope: value[0] }))}
-                    max={100}
-                    step={1}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Immediate</span>
-                    <p className="text-sm text-muted-foreground">{getTimeScopeLabel()}</p>
-                    <span>Long-term</span>
+                  <div className="flex flex-col items-center space-y-4">
+                    <label className="text-sm font-medium" style={{ display: "none" }}>Time Scope</label>
+                    <Knob
+                      value={parameters.timeScope}
+                      onChange={(value) => setParameters(p => ({ ...p, timeScope: value }))}
+                      size={100}
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="knob-primary"
+                    />
+                    <div className="text-center">
+
+                      <div className="flex justify-between w-full text-xs text-muted-foreground mt-2">
+                        <span>Immediate</span>
+                        <label className="text-sm font-medium" style={{
+                    textAlign: 'center',
+                    fontFamily: 'monospace',
+                    color: '#4a4a4a', fontWeight:"900",marginTop: "40px"
+                  }}>TIME SCOPE</label>
+                        <span>Long-term</span>
+                      </div>
+                      
+                      <div style={{
+                        backgroundColor: '#ddd9c6',
+                        border: '1px solid',
+                        width: '220px',
+                        
+                        minHeight: '60px',
+                        boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                      }}>
+                        <p className="text-sm text-muted-foreground" style={{
+                          fontFamily: 'monospace',
+                          wordWrap: 'normal', margin: ".5rem"
+                        }}>
+                          {getTimeScopeLabel()}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Scale Slider */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Impact Scale</label>
-                  <Slider
-                    value={[parameters.scale]}
-                    onValueChange={(value) => setParameters(p => ({ ...p, scale: value[0] }))}
-                    max={100}
-                    step={1}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Individual</span>
-                    <p className="text-sm text-muted-foreground">{getScaleLabel()}</p>
-                    <span>Societal</span>
+                  {/* Impact Scale Knob */}
+                  <div className="flex flex-col items-center space-y-4">
+                    <label className="text-sm font-medium" style={{ display: "none" }}>Impact Scale</label>
+                    <Knob
+                      value={parameters.scale}
+                      onChange={(value) => setParameters(p => ({ ...p, scale: value }))}
+                      size={100}
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="knob-primary"
+                    />
+                    <div className="text-center">
+
+                      <div className="flex justify-between w-full text-xs text-muted-foreground mt-2">
+                        <span>Individual</span>
+                        <label className="text-sm font-medium" style={{
+                    textAlign: 'center',
+                    fontFamily: 'monospace',
+                    color: '#4a4a4a', fontWeight:"900", marginTop: "40px"
+                  }}>IMPACT SCALE</label>
+                        <span>Societal</span>
+                      </div>
+                      
+                      <div style={{
+                        backgroundColor: '#ddd9c6',
+                        border: '1px solid',
+                        width: '220px',
+                        
+                        minHeight: '60px',
+                        boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                      }}>
+                        <p className="text-sm text-muted-foreground" style={{
+                          fontFamily: 'monospace',
+                          wordWrap: 'normal', margin: ".5rem"
+                        }}>
+                          {getScaleLabel()}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Depth Slider */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Analysis Depth</label>
-                  <Slider
-                    value={[parameters.depth]}
-                    onValueChange={(value) => setParameters(p => ({ ...p, depth: value[0] }))}
-                    max={100}
-                    step={1}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Practical</span>
-                    <p className="text-sm text-muted-foreground">{getDepthLabel()}</p>
-                    <span>Philosophical</span>
+                  {/* Analysis Depth Knob */}
+                  <div className="flex flex-col items-center space-y-4">
+                    <label className="text-sm font-medium" style={{ display: "none" }}>Analysis Depth</label>
+                    <Knob
+                      value={parameters.depth}
+                      onChange={(value) => setParameters(p => ({ ...p, depth: value }))}
+                      size={100}
+                      min={0}
+                      max={100}
+                      step={1}
+                      className="knob-primary"
+                    />
+                    <div className="text-center">
+
+                      <div className="flex justify-between w-full text-xs text-muted-foreground mt-2">
+                        <span>Practical</span>
+                        <label className="text-sm font-medium" style={{
+                    textAlign: 'center',
+                    fontFamily: 'monospace',
+                    color: '#4a4a4a', fontWeight:"900", marginTop: "40px"
+                  }}>ANALYSIS DEPTH</label>
+                        <span>Philosophical</span>
+                      </div>
+                      
+                      <div style={{
+                        backgroundColor: '#ddd9c6',
+                        border: '1px solid',
+                        width: '220px',
+                        
+                        minHeight: '60px',
+                        boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                      }}>
+                        <p className="text-sm text-muted-foreground" style={{
+                          fontFamily: 'monospace',
+                          wordWrap: 'normal', margin: ".5rem"
+                        }}>
+                          {getDepthLabel()}
+                        </p>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
 
                 {/* Timeline Slider - Already exists */}
                 {/* Timeline Slider */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Analysis Timeline</label>
-                  <div className="sc-hWWBcw frWHZL">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ marginTop: "60px" }}>
+                  <div className="space-y-2" style={{ margin: "0px 0px 0px 38px", maxWidth: "300px", display: "grid" }}>
+                    <label className="text-sm font-medium" style={{
+                      float: 'left',
+                      fontFamily: 'monospace',
+                      color: '#4a4a4a', fontWeight:"900", paddingBottom: "20px", textAlign: "center"
+                    }}>ANALYSIS TIMELINE</label>
+
+                    <div className="sc-hWWBcw frWHZL">
+                      <Slider
+                        value={[parameters.timeline]}
+                        onValueChange={(value) => setParameters(p => ({ ...p, timeline: value[0] }))}
+                        min={2025}
+                        max={2055}
+                        step={1}
+                      /><div className="flex justify-between text-xs text-muted-foreground" style={{ marginTop: "20px" }}><span>More Focused</span><p className="text-sm text-muted-foreground"></p><span>More Creative</span></div>
+                      <span className="text-sm text-muted-foreground w-16">
+                        <div style={{
+                          backgroundColor: '#ddd9c6',
+                          border: '1px solid',
+                          width: '220px',
+                          height: "80px",
+                          margin: '30px auto 20px',
+                          minHeight: '60px',
+                          boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                        }}>
+                          <p className="text-sm text-muted-foreground" style={{
+                            fontFamily: 'monospace',
+                            fontSize: "1.2rem",
+                            wordWrap: 'normal', margin: "1.8rem"
+                          }}>
+                            {parameters.timeline}
+                          </p>
+                        </div>
+
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Temperature Slider */}
+                  <div className="space-y-2" style={{ margin: "0px 0px 0px 48px", maxWidth: "300px", display: "grid" }}>
+                    <label className="text-sm font-medium" style={{
+                      float: 'left',
+                      fontFamily: 'monospace',
+                      color: '#4a4a4a', fontWeight:"900", paddingBottom: "20px", textAlign: "center"
+                    }}>LLM TEMPERATURE</label>
+
                     <Slider
-                      value={[parameters.timeline]}
-                      onValueChange={(value) => setParameters(p => ({ ...p, timeline: value[0] }))}
-                      min={2025}
-                      max={2055}
+                      value={[temperature * 100]}
+                      onValueChange={(value) => setTemperature(value[0] / 100)}
+                      max={100}
                       step={1}
                     />
-                    <span className="text-sm text-muted-foreground w-16">
-                      {parameters.timeline}
-                    </span>
+                    <div className="flex justify-between text-xs text-muted-foreground" style={{ marginTop: "20px" }}>
+                      <span>More Focused ({(temperature * 100).toFixed(0)}%)</span>
+                      <p className="text-sm text-muted-foreground">
+
+                      </p>
+                      <span>More Creative</span>
+
+                    </div>
+                    <div style={{
+                      backgroundColor: '#ddd9c6',
+                      border: '1px solid',
+                      width: '220px',
+                      height: "80px",
+                      margin: '30px auto 20px',
+                      minHeight: '60px',
+                      boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                    }}>
+                      <p className="text-sm text-muted-foreground" style={{
+                        fontFamily: 'monospace',
+                        fontSize: ".875rem",
+                        wordWrap: 'normal', margin: "1.2rem"
+                      }}>
+                        {temperature < 0.33 ? "Consistent, deterministic outputs"
+                          : temperature < 0.66 ? "Balanced creativity and consistency"
+                            : "More creative, diverse outputs"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-
-                {/* Temperature Slider */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">LLM Temperature</label>
-                  <Slider
-                    value={[temperature * 100]}
-                    onValueChange={(value) => setTemperature(value[0] / 100)}
-                    max={100}
-                    step={1}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>More Focused ({(temperature * 100).toFixed(0)}%)</span>
-                    <p className="text-sm text-muted-foreground">
-                      {temperature < 0.33 ? "Consistent, deterministic outputs"
-                        : temperature < 0.66 ? "Balanced creativity and consistency"
-                          : "More creative, diverse outputs"}
-                    </p>
-                    <span>More Creative</span>
-                  </div>
-                </div>
-
                 {/* Controls */}
-                <div className="space-y-4">
-                <h2 className="sc-eaUbBy fWhFkO">Select LLM</h2>
-                <label className="text-sm font-medium">Claude is a paid serivces and Deepseek is free local LLM (is a little slower).</label>
-                  <div className="flex items-center space-x-2" style={{ margin:"20px auto", width:"fit-content" }}>
-                  <label className="text-sm">Use Local Claude</label>
-                    <Switch
-                      checked={selectedLLM === 'ollama'}
-                      onCheckedChange={(checked) =>
-                        setSelectedLLM(checked ? 'ollama' : 'claude')
-                      }
-                    />
-                    <label className="text-sm" style={{ color: 'rgb(237 113 26)' }}>Use Local Deepseek</label>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ marginTop: "60px", width: "90%", margin: "40px auto 0px" }}>
+                  <div className="space-y-4" style={{ display: "grid" }}>
+                    <label className="text-sm font-medium" style={{
+                      float: 'left',
+                      fontFamily: 'monospace',
+                      color: '#4a4a4a', fontWeight:"900", textAlign: "center"
+                  }}> SELECT LLM</label>
+                    <div className="flex items-center space-x-2" style={{ width: "fit-content" }}>
 
-                  <Button
-                    disabled={!technology || isLoading}
-                    onClick={handleGenerateAnalysis}
-                    className="w-full" style={{ color: 'rgb(237 113 26)' }}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="animate-spin" />
-                        <span>Generating...</span>
+                      <Switch
+                        checked={selectedLLM === 'ollama'}
+                        onCheckedChange={(checked) =>
+                          setSelectedLLM(checked ? 'ollama' : 'claude')
+                        }
+                      />
+                      <div style={{ display: "grid", gap: "90px" }}>
+                        <label className="text-sm" style={{ fontSize: "0.75rem", color: "#64748b" }}>Use Local Claude</label>
+                        <label className="text-sm" style={{ fontSize: "0.75rem", color: "#64748b" }}>Use Local Deepseek</label>
                       </div>
-                    ) : (
-                      `Generate ${selectedLLM === 'claude' ? 'Claude' : 'Deepseek'} Analysis`
-                    )}
-                  </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-4" style={{ marginTop: "20px" }}>
+                    <Button
+                      disabled={!technology || isLoading}
+                      onClick={handleGenerateAnalysis}
+                      className="w-full" style={{ color: '#64748b', height: "160px", border: "1px solid  #b6b6b6" }}
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="animate-spin" />
+                          <span>Generating...</span>
+                        </div>
+                      ) : (
+                        `Generate ${selectedLLM === 'claude' ? 'Claude' : 'Deepseek'} Analysis`
+                      )}
+                    </Button>
+                  </div>
                 </div>
-
                 {error && (
                   <Alert variant="destructive">
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
               </div>
+
             </SoftUICardContent>
           </SoftUICard>
 
@@ -407,7 +556,14 @@ const McLuhanAnalyzer = () => {
                 <SoftUICardTitle>McLuhan Tetrad Analysis</SoftUICardTitle>
               </SoftUICardHeader>
               <SoftUICardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{
+                  backgroundColor: '#ddd9c6',
+                  border: '1px solid',
+                  padding: '5px',
+                  margin: '30px auto 20px',
+                  minHeight: '60px',
+                  boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                }}>
                   {/* Enhancement */}
                   <FlipCard
                     title="Enhancement"
@@ -574,13 +730,20 @@ const McLuhanAnalyzer = () => {
                 </div>
 
                 {/* Analysis Summary */}
-                <div className="mt-6">
-                  <SoftUICard>
+                <div className="mt-6" style={{
+                  backgroundColor: '#ddd9c6',
+                  border: '1px solid',
+                  padding: '5px',
+                  margin: '30px auto 20px',
+                  minHeight: '60px',
+                  boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                }}>
+                  <SoftUICard >
                     <SoftUICardHeader>
                       <SoftUICardTitle>Analysis Summary</SoftUICardTitle>
                     </SoftUICardHeader>
-                    <SoftUICardContent>
-                      <div className="space-y-4">
+                    <SoftUICardContent >
+                      <div className="space-y-4" >
                         <p className="text-muted-foreground">
                           {analysisResults.content.analysis}
                         </p>
@@ -594,24 +757,54 @@ const McLuhanAnalyzer = () => {
                     </SoftUICardContent>
                   </SoftUICard>
                 </div>
-                <div className="mt-6">
-                  <div className="flex justify-center">
-                    <Button
-                      onClick={handleExploreDeeper}
-                      disabled={isLoadingExploration}
-                      className="w-full md:w-auto" style={{ color: 'rgb(237 113 26)' }}
-                    >
-                      {isLoadingExploration ? (
-                        <div className="flex items-center gap-2" >
-                          <Loader2 className="animate-spin" />
-                          <span>Generating Exploration...</span>
-                        </div>
-                      ) : (
-                        'Dig Deeper'
-                      )}
-                    </Button>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ margin: "0px" }}>
+
+
+                <div style={{ position: 'relative', width: '100px', height: '100px', margin: '30px auto' }}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '20%', height: '20%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: '50%', left: 'calc(50% + 40px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: 'calc(50% - 35px)', left: 'calc(50% + 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: 'calc(50% - 35px)', left: 'calc(50% - 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: '50%', left: 'calc(50% - 40px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: 'calc(50% + 35px)', left: 'calc(50% - 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: 'calc(50% + 35px)', left: 'calc(50% + 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
                   </div>
+
+
+
+                  <div className="mt-6">
+                    <div className="flex justify-center">
+                      <Button
+                        onClick={handleExploreDeeper}
+                        disabled={isLoadingExploration}
+                        className="w-full md:w-auto" style={{ color: '#64748b', width: "240px", height: "120px", borderColor: "#e5e7eb" }}
+                      >
+                        {isLoadingExploration ? (
+                          <div className="flex items-center gap-2" >
+                            <Loader2 className="animate-spin" />
+                            <span>Generating Exploration...</span>
+                          </div>
+                        ) : (
+                          'Dig Deeper'
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div style={{ position: 'relative', width: '100px', height: '100px', margin: '30px auto' }}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '20%', height: '20%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset  3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: '50%', left: 'calc(50% + 40px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: 'calc(50% - 35px)', left: 'calc(50% + 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: 'calc(50% - 35px)', left: 'calc(50% - 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: '50%', left: 'calc(50% - 40px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: 'calc(50% + 35px)', left: 'calc(50% - 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                    <div style={{ position: 'absolute', top: 'calc(50% + 35px)', left: 'calc(50% + 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+                  </div>
+
                 </div>
+
+
               </SoftUICardContent>
             </SoftUICard>
           )}
@@ -621,11 +814,18 @@ const McLuhanAnalyzer = () => {
                 <SoftUICardTitle>Deep Dive Exploration</SoftUICardTitle>
               </SoftUICardHeader>
               <SoftUICardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ gridAutoRows: "auto" }}>
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-6" style={{ gridAutoRows: "auto" }}>
                   {/* Enhancement */}
-                  <SoftUICard>
+                  <SoftUICard style={{
+                  backgroundColor: '#ddd9c6',
+                  border: '1px solid',
+                  padding: '15px',
+                  margin: '30px auto 20px',
+                  minHeight: '60px',
+                  boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                }}>
                     <SoftUICardHeader>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2" >
                         <Maximize2 className="h-5 w-5" style={{ color: '#708de6' }} />
                         <SoftUICardTitle>Enhancement</SoftUICardTitle>
                       </div>
@@ -648,7 +848,7 @@ const McLuhanAnalyzer = () => {
                                 technology={technology}
                                 selectedLLM={selectedLLM}
                                 onDeepDiveResponse={handleDeepDiveResponse}
-                                
+
                               />
                             ))}
                           </div>
@@ -658,7 +858,14 @@ const McLuhanAnalyzer = () => {
                   </SoftUICard>
 
                   {/* Obsolescence */}
-                  <SoftUICard>
+                  <SoftUICard style={{
+                  backgroundColor: '#ddd9c6',
+                  border: '1px solid',
+                  padding: '15px',
+                  margin: '30px auto 20px',
+                  minHeight: '60px',
+                  boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                }}>
                     <SoftUICardHeader>
                       <div className="flex items-center space-x-2">
                         <MinusCircle className="h-5 w-5" style={{ color: '#708de6' }} />
@@ -692,7 +899,14 @@ const McLuhanAnalyzer = () => {
                   </SoftUICard>
 
                   {/* Retrieval */}
-                  <SoftUICard>
+                  <SoftUICard style={{
+                  backgroundColor: '#ddd9c6',
+                  border: '1px solid',
+                  padding: '15px',
+                  margin: '30px auto 20px',
+                  minHeight: '60px',
+                  boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                }}>
                     <SoftUICardHeader>
                       <div className="flex items-center space-x-2">
                         <RotateCcw className="h-5 w-5" style={{ color: '#708de6' }} />
@@ -724,7 +938,14 @@ const McLuhanAnalyzer = () => {
                       </div>
                     </SoftUICardContent>
                   </SoftUICard>
-                  <SoftUICard>
+                  <SoftUICard style={{
+                  backgroundColor: '#ddd9c6',
+                  border: '1px solid',
+                  padding: '15px',
+                  margin: '30px auto 20px',
+                  minHeight: '60px',
+                  boxShadow: '#9199a2 2px 2px 2px inset, #caba7b -2px -2px 11px inset'
+                }}>
                     <SoftUICardHeader>
                       <div className="flex items-center space-x-2">
                         <FlipHorizontal className="h-5 w-5" style={{ color: '#708de6' }} />
@@ -757,17 +978,55 @@ const McLuhanAnalyzer = () => {
                     </SoftUICardContent>
                   </SoftUICard>
                 </div>
-                <div className="mt-6">
+
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ margin: "0px" }}>
+
+
+<div style={{ position: 'relative', width: '100px', height: '100px', margin: '30px auto' }}>
+    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '20%', height: '20%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: '50%', left: 'calc(50% + 40px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: 'calc(50% - 35px)', left: 'calc(50% + 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: 'calc(50% - 35px)', left: 'calc(50% - 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: '50%', left: 'calc(50% - 40px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: 'calc(50% + 35px)', left: 'calc(50% - 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: 'calc(50% + 35px)', left: 'calc(50% + 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+  </div>
+
+
+
+  <div className="mt-6">
                   <div className="flex justify-center">
                     <Button
                       onClick={() => setShowReport(!showReport)}
                       className="w-full md:w-auto"
-                      style={{ color: 'rgb(237 113 26)' }}
+                      style={{ color: '#64748b', width: "240px", height: "120px", borderColor: "#e5e7eb" }}
                     >
                       {showReport ? 'Hide Report' : 'Generate Complete Report'}
                     </Button>
                   </div>
                 </div>
+
+  <div style={{ position: 'relative', width: '100px', height: '100px', margin: '30px auto' }}>
+    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '20%', height: '20%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset  3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: '50%', left: 'calc(50% + 40px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: 'calc(50% - 35px)', left: 'calc(50% + 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: 'calc(50% - 35px)', left: 'calc(50% - 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: '50%', left: 'calc(50% - 40px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: 'calc(50% + 35px)', left: 'calc(50% - 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+    <div style={{ position: 'absolute', top: 'calc(50% + 35px)', left: 'calc(50% + 20px)', transform: 'translate(-50%, -50%)', width: '15%', height: '15%', borderRadius: '50%', background: 'linear-gradient(145deg,rgb(164, 164, 164),rgb(203, 203, 203))', boxShadow: 'inset 3px 3px 6px rgba(0,0,0,0.2), -1px -1px 4px rgba(255,255,255,0.1)' }}></div>
+  </div>
+
+</div>
+
+
+                
+
+
+
+
+
+
               </SoftUICardContent>
             </SoftUICard>
           )}

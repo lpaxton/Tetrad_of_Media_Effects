@@ -10,7 +10,7 @@
   width: 100%;
   min-height: 100%;
   transform-style: preserve-3d;
-  transition: transform 0.6s;
+  transition: transform 0.01s;
 }
 
 .flip-card-face {
