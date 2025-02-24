@@ -1,0 +1,150 @@
+import { NextResponse } from 'next/server';
+import { AnalysisParams, AnalysisResponse } from '@/app/components/tetrad/types/types';
+import OpenAI from 'openai';
+
+function generatePrompt(params: AnalysisParams) {
+  const { technology, parameters, temperature } = params;
+  
+  // Add temperature-based guidance
+  const temperatureGuidance = temperature < 0.33 
+    ? '- Provide focused, conservative analysis with established impacts'
+    : temperature < 0.66
+    ? '- Balance established impacts with potential emerging effects'
+    : '- Explore creative and speculative future implications';
+
+  // Build analysis parameters
+  const timeScope = (parameters?.timeScope ?? 0) < 33 
+    ? '- Focus on immediate and short-term effects'
+    : (parameters?.timeScope ?? 0) < 66 
+    ? '- Balance short and long-term implications'
+    : '- Emphasize long-term and future implications';
+
+  const scale = (parameters?.scale ?? 0) < 33
+    ? '- Focus on individual impacts'
+    : (parameters?.scale ?? 0) < 66
+    ? '- Consider both individual and societal impacts'
+    : '- Emphasize broader societal and cultural impacts';
+
+  const depth = (parameters?.depth ?? 0) < 33
+    ? '- Provide practical, concrete analysis'
+    : (parameters?.depth ?? 0) < 66
+    ? '- Balance practical and philosophical implications'
+    : '- Delve into deeper philosophical implications';
+
+  const temperatureInstruction = temperature < 0.33 
+    ? 'Focus on well-documented and proven effects, maintaining a conservative analytical approach.'
+    : temperature < 0.66
+    ? 'Balance established effects with thoughtful speculation about emerging trends.'
+    : 'Feel free to explore innovative and transformative possibilities while maintaining plausibility.';
+
+  return `You are tasked with analyzing ${technology} using Marshall McLuhan's tetrad of media effects. Please provide your analysis in a strict JSON format matching this exact structure:
+
+{
+  "enhancement": [
+    "first effect",
+    "second effect",
+    "third effect"
+  ],
+  "obsolescence": [
+    "first effect",
+    "second effect",
+    "third effect"
+  ],
+  "retrieval": [
+    "first effect",
+    "second effect",
+    "third effect"
+  ],
+  "reversal": [
+    "first effect",
+    "second effect",
+    "third effect"
+  ],
+  "considerations": {
+    "enhancement": "A thoughtful consideration about balancing enhancement capabilities",
+    "obsolescence": "A thoughtful consideration about what is being lost",
+    "retrieval": "A thoughtful consideration about what is being brought back",
+    "reversal": "A thoughtful consideration about potential negative transformations"
+  },
+  "analysis": "summary paragraph here",
+  "confidence": 0.85
+}
+
+Analysis Parameters to consider:
+${temperatureGuidance}
+${timeScope}
+${scale}
+${depth}
+- Consider advancements in technology or medium for the year ${parameters?.timeline || 2024}
+
+Remember:
+1. Enhancement: What does ${technology} amplify or intensify?
+2. Obsolescence: What does ${technology} drive out of prominence?
+3. Retrieval: What does ${technology} recover which was previously lost?
+4. Reversal: What does ${technology} flip into when pushed to extremes?
+
+${temperatureInstruction}
+
+Important: Your response must be valid JSON that exactly matches the structure shown above. Each effect should be a complete, insightful phrase.`;
+}
+
+export async function POST(request: Request) {
+  try {
+    const params: AnalysisParams = await request.json();
+    console.log('Received parameters:', params);
+
+    const prompt = generatePrompt(params);
+    console.log('Generated prompt:', prompt);
+
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is not set');
+    }
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-turbo-preview",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert in media theory and McLuhan's tetrad analysis. Respond using McLuhan's voice and writing style. Always respond with valid JSON matching the exact structure requested."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: params.temperature || 0.7,
+      max_tokens: 2000,
+      response_format: { type: "json_object" }
+    });
+
+    if (!response.choices[0].message.content) {
+      throw new Error('No content in OpenAI response');
+    }
+
+    try {
+      const parsedContent = JSON.parse(response.choices[0].message.content);
+      console.log('Parsed content:', parsedContent);
+
+      return NextResponse.json({ content: parsedContent });
+    } catch (error: unknown) {
+      console.error('Parse error:', error);
+      console.error('Failed to parse text:', response.choices[0].message.content);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown parsing error';
+      return NextResponse.json(
+        { error: `Failed to parse OpenAI response: ${errorMessage}` },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error('API route error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to process analysis request' },
+      { status: 500 }
+    );
+  }
+}
