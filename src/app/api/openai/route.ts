@@ -96,16 +96,13 @@ export async function POST(request: Request) {
     const prompt = generatePrompt(params);
     console.log('Generated prompt:', prompt);
 
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not set');
-    }
-
     const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
+      baseURL: 'http://localhost:11434/v1/',
+      apiKey: 'ollama', // required but can be any string
     });
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
+      model: "mistral", // or whichever model you have pulled in Ollama
       messages: [
         {
           role: "system",
@@ -117,12 +114,11 @@ export async function POST(request: Request) {
         }
       ],
       temperature: params.temperature || 0.7,
-      max_tokens: 2000,
-      response_format: { type: "json_object" }
+      // Note: removing response_format as Ollama might not support it
     });
 
     if (!response.choices[0].message.content) {
-      throw new Error('No content in OpenAI response');
+      throw new Error('No content in model response');
     }
 
     try {
@@ -136,7 +132,7 @@ export async function POST(request: Request) {
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown parsing error';
       return NextResponse.json(
-        { error: `Failed to parse OpenAI response: ${errorMessage}` },
+        { error: `Failed to parse model response: ${errorMessage}` },
         { status: 500 }
       );
     }
